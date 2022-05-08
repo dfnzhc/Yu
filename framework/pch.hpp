@@ -31,3 +31,6 @@
 #include <winnt.h>
 #include <windowsx.h>
 #endif
+
+#include "common/logger.hpp"
+#include "common/common.hpp"

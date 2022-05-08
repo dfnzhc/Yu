@@ -22,6 +22,6 @@ set(ALL_EXAMPLE_TARGETS
 
 foreach (name ${ALL_EXAMPLE_TARGETS})
     target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(${name} PRIVATE Catch2::Catch2 THE_LIB_NAME)
+    target_link_libraries(${name} PRIVATE Catch2::Catch2 framework)
     set_property(TARGET ${name} PROPERTY CXX_STANDARD 23)
 endforeach ()

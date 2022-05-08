@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 
 TEST_CASE("test", "[TestLog]")
 {
-    Setaria::Log log;
+    ST::Log log;
 
     LOG_TRACE("123");
     LOG_DEBUG("123");

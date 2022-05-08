@@ -9,7 +9,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
-namespace Setaria {
+namespace ST {
 
 const char* LOGGER_NAME = "Setaria";
 
@@ -34,7 +34,7 @@ public:
         file_sink->set_pattern("[%T] [%l]: %v");
 
         std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
-        auto logger = std::make_shared<spdlog::logger>(XXX::LOGGER_NAME, sinks.begin(), sinks.end());
+        auto logger = std::make_shared<spdlog::logger>(ST::LOGGER_NAME, sinks.begin(), sinks.end());
         logger->set_level(spdlog::level::trace);
         logger->flush_on(spdlog::level::trace);
         spdlog::register_logger(logger);
@@ -46,7 +46,7 @@ public:
     }
 };
 
-} // namespace Setaria
+} // namespace ST
 
 
 // Mainly for IDEs
@@ -56,9 +56,9 @@ public:
 
 //#define __FILENAME__ (static_cast<const char *>(__FILE__) + ROOT_PATH_SIZE)
 
-#define LOG_TRACE(...)    if (spdlog::get(XXX::LOGGER_NAME) != nullptr) {spdlog::get(XXX::LOGGER_NAME)->trace(__VA_ARGS__);}
-#define LOG_DEBUG(...)    if (spdlog::get(XXX::LOGGER_NAME) != nullptr) {spdlog::get(XXX::LOGGER_NAME)->debug(__VA_ARGS__);}
-#define LOG_INFO(...)    if (spdlog::get(XXX::LOGGER_NAME) != nullptr) {spdlog::get(XXX::LOGGER_NAME)->info(__VA_ARGS__);}
-#define LOG_WARN(...)    if (spdlog::get(XXX::LOGGER_NAME) != nullptr) {spdlog::get(XXX::LOGGER_NAME)->warn(__VA_ARGS__);}
-#define LOG_ERROR(...)    if (spdlog::get(XXX::LOGGER_NAME) != nullptr) \
-    {spdlog::get(XXX::LOGGER_NAME)->error("[{}:{}] {}", __FILE__, __LINE__, fmt::format(__VA_ARGS__));}
+#define LOG_TRACE(...)    if (spdlog::get(ST::LOGGER_NAME) != nullptr) {spdlog::get(ST::LOGGER_NAME)->trace(__VA_ARGS__);}
+#define LOG_DEBUG(...)    if (spdlog::get(ST::LOGGER_NAME) != nullptr) {spdlog::get(ST::LOGGER_NAME)->debug(__VA_ARGS__);}
+#define LOG_INFO(...)    if (spdlog::get(ST::LOGGER_NAME) != nullptr) {spdlog::get(ST::LOGGER_NAME)->info(__VA_ARGS__);}
+#define LOG_WARN(...)    if (spdlog::get(ST::LOGGER_NAME) != nullptr) {spdlog::get(ST::LOGGER_NAME)->warn(__VA_ARGS__);}
+#define LOG_ERROR(...)    if (spdlog::get(ST::LOGGER_NAME) != nullptr) \
+    {spdlog::get(ST::LOGGER_NAME)->error("[{}:{}] {}", __FILE__, __LINE__, fmt::format(__VA_ARGS__));}

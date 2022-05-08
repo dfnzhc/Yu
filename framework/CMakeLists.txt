@@ -3,17 +3,30 @@
 # set the name of project
 project(framework LANGUAGES C CXX)
 
+# vulkan
+find_package(Vulkan REQUIRED)
+
 set(COMMON_FILES
         # header files
         common/logger.hpp
+        common/common.hpp)
+
+set(RHI_VULKAN_FILES
+        # header files
+        RHI/vulkan/vk_error.hpp
+        
+        # source files
+        RHI/vulkan/vk_error.cpp
         )
 
 # set the group of the source files
-source_group("common\\" FILES ${COMMON_FILES})
+source_group("common\\"     FILES ${COMMON_FILES})
+source_group("RHI\\vulkan"  FILES ${RHI_VULKAN_FILES})
 
 
 set(PROJECT_FILES
         ${COMMON_FILES}
+        ${RHI_VULKAN_FILES}
         )
 
 set_source_files_properties(${PROJECT_FILES} PROPERTIES LANGUAGE CXX)
@@ -36,4 +49,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} 
         PUBLIC
         spdlog
+        Vulkan::Vulkan
+        vma
+        volk
         )
