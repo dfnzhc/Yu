@@ -32,5 +32,6 @@
 #include <windowsx.h>
 #endif
 
-#include "common/logger.hpp"
-#include "common/common.hpp"
+
+#include "yuan/base/logger.hpp"
+#include "yuan/base/common.hpp"

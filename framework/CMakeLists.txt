@@ -52,4 +52,5 @@ target_link_libraries(${PROJECT_NAME}
         Vulkan::Vulkan
         vma
         volk
+        yuan
         )

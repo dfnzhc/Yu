@@ -3,10 +3,12 @@
 project(third_party LANGUAGES C CXX)
 
 # spdlog
-find_package(spdlog REQUIRED CONFIG)
-add_library(spdlog INTERFACE)
-target_link_libraries(spdlog INTERFACE spdlog::spdlog)
-set_target_properties(spdlog PROPERTIES FOLDER "ThirdParty")
+set(YUAN_BUILD_TESTS OFF)
+add_subdirectory(yuan)
+add_library(yuan INTERFACE)
+target_link_libraries(yuan INTERFACE Yuan::Yuan)
+target_include_directories(yuan INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/yuan/source")
+set_target_properties(yuan PROPERTIES FOLDER "ThirdParty")
 
 # vma 
 find_package(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
