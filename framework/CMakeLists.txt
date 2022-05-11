@@ -8,8 +8,9 @@ find_package(Vulkan REQUIRED)
 
 set(COMMON_FILES
         # header files
-        common/logger.hpp
-        common/common.hpp)
+        pch.hpp
+
+        common/common.hpp common/helpers.hpp)
 
 set(RHI_VULKAN_FILES
         # header files
@@ -17,7 +18,7 @@ set(RHI_VULKAN_FILES
         
         # source files
         RHI/vulkan/vk_error.cpp
-        )
+        RHI/vulkan/vk_appbase.cpp RHI/vulkan/vk_appbase.hpp RHI/vulkan/vk_instance.cpp RHI/vulkan/vk_instance.hpp)
 
 # set the group of the source files
 source_group("common\\"     FILES ${COMMON_FILES})
@@ -48,9 +49,9 @@ endif()
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} 
         PUBLIC
-        spdlog
         Vulkan::Vulkan
+        volk_
+        spdlog
         vma
-        volk
         yuan
         )

@@ -32,6 +32,7 @@
 #include <windowsx.h>
 #endif
 
-
 #include "yuan/base/logger.hpp"
 #include "yuan/base/common.hpp"
+
+using namespace Yuan;

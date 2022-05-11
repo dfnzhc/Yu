@@ -14,8 +14,9 @@ set_target_properties(yuan PROPERTIES FOLDER "ThirdParty")
 find_package(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 add_library(vma INTERFACE)
 target_link_libraries(vma INTERFACE unofficial::vulkan-memory-allocator::vulkan-memory-allocator)
+set_target_properties(vma PROPERTIES FOLDER "ThirdParty")
 
 # volk
 find_package(volk CONFIG REQUIRED)
-add_library(volk INTERFACE)
-target_link_libraries(volk INTERFACE volk::volk volk::volk_headers)
+add_library(volk_ INTERFACE)
+target_link_libraries(volk_ INTERFACE volk::volk volk::volk_headers)

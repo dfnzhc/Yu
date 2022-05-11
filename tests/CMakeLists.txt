@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required(VERSION 3.21)
-project(CGT_Test LANGUAGES CXX CUDA)
+project(CGT_Test LANGUAGES CXX C)
 
 find_package(Catch2 CONFIG REQUIRED)
 
