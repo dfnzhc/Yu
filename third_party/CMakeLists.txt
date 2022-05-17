@@ -18,5 +18,5 @@ set_target_properties(vma PROPERTIES FOLDER "ThirdParty")
 
 # volk
 find_package(volk CONFIG REQUIRED)
-add_library(volk_ INTERFACE)
-target_link_libraries(volk_ INTERFACE volk::volk volk::volk_headers)
+add_library(volk INTERFACE)
+target_link_libraries(volk INTERFACE volk::volk)
