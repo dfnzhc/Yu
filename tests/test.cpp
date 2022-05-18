@@ -6,17 +6,26 @@
 
 #include <catch2/catch.hpp>
 #include <filesystem>
-#include "common/logger.hpp"
+#include "win_platform.hpp"
+#include "logger.hpp"
+#include "RHI/vulkan/vk_appbase.hpp"
 
 namespace fs = std::filesystem;
 
 TEST_CASE("test", "[TestLog]")
 {
-    ST::Log log;
+    Yuan::Log::Init();
+    
+    Yuan::WinPlatform platform;
+    
+    ST::vk_AppBase vk_app{};
 
-    LOG_TRACE("123");
-    LOG_DEBUG("123");
-    LOG_INFO("123");
-    LOG_WARN("123");
-    LOG_ERROR("123");
+    platform.setApplication(&vk_app);
+    
+    auto code = platform.initialize();
+    if (code == Yuan::ExitCode::Success) {
+        code = platform.mainLoop();
+    }
+    
+    platform.terminate(code);
 }

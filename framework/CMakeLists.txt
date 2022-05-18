@@ -18,29 +18,15 @@ set(RHI_VULKAN_FILES
         
         # source files
         RHI/vulkan/vk_error.cpp
-        RHI/vulkan/vk_appbase.cpp RHI/vulkan/vk_appbase.hpp)
-
-set(RHI_VULKAN_HPP_FILES
-        # header files
-        RHI/vulkan/hpp/vk_instance.hpp 
-        RHI/vulkan/hpp/vk_hppUtils.hpp
-
-        # source files
-        RHI/vulkan/hpp/vk_instance.cpp 
-        RHI/vulkan/hpp/vk_hppUtils.cpp
-        RHI/vulkan/hpp/vk_Device.cpp RHI/vulkan/hpp/vk_Device.hpp RHI/vulkan/hpp/vk_appbase_hpp.cpp RHI/vulkan/hpp/vk_appbase_hpp.hpp)
-
+        RHI/vulkan/vk_appbase.cpp RHI/vulkan/vk_appbase.hpp RHI/vulkan/vk_debug.cpp RHI/vulkan/vk_debug.hpp)
 
 # set the group of the source files
 source_group("common\\"     FILES ${COMMON_FILES})
 source_group("RHI\\vulkan"  FILES ${RHI_VULKAN_FILES})
-source_group("RHI\\vulkan\\hpp"  FILES ${RHI_VULKAN_HPP_FILES})
-
 
 set(PROJECT_FILES
         ${COMMON_FILES}
         ${RHI_VULKAN_FILES}
-        ${RHI_VULKAN_HPP_FILES}
         )
 
 set_source_files_properties(${PROJECT_FILES} PROPERTIES LANGUAGE CXX)
@@ -65,6 +51,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} 
         PUBLIC
         Vulkan::Vulkan
-        vma
         yuan
+        glm
         )

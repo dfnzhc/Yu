@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <vulkan/vulkan_core.h>
 #include "yuan/platform/Application.hpp"
 
 namespace ST {
@@ -12,7 +13,7 @@ class vk_AppBase : public Yuan::Application
 {
 public:
     vk_AppBase() = default;
-    virtual ~vk_AppBase() = default;
+    virtual ~vk_AppBase() {};
 
     //--------------------------------------------------------------------------------------------------
     // 基础的设置
@@ -21,7 +22,7 @@ public:
      * @brief Prepares the application for execution
      * @param platform The platform the application is being run on
      */
-    virtual bool prepare(Platform& platform) override;
+    virtual bool prepare(Yuan::Platform& platform) override;
 
     /**
      * @brief Updates the application
@@ -45,12 +46,47 @@ public:
      * @brief Handles input events of the window
      * @param input_event The input event object
      */
-    virtual void input_event(const InputEvent& input_event) override;
+    virtual void input_event(const Yuan::InputEvent& input_event) override;
 
     //--------------------------------------------------------------------------------------------------
-    // Vulkan 功能
+    // Vulkan 变量和方法
     //--------------------------------------------------------------------------------------------------
+protected:
+    struct
+    {
+        uint32_t apiVersion = VK_API_VERSION_1_3;
+    } vulkan_properties_;
+
+    struct
+    {
+#ifdef NDEBUG
+        bool validation = false;
+#else
+        bool validation = true;
+#endif
+    } vulkan_settings_;
+
+    VkInstance instance_{};
+    std::vector<std::string> supported_instance_extensions_;
+    // 物理设备 GPU
+    VkPhysicalDevice physical_device_{};
+    // 物理设备的相关属性和特质
+    VkPhysicalDeviceProperties device_properties_{};
+    VkPhysicalDeviceFeatures device_features_{};
+    VkPhysicalDeviceMemoryProperties device_memory_properties_{};
+    VkPhysicalDeviceFeatures enabled_features{};
+    // 启用的设备和实例扩展
+    std::vector<const char*> enabled_device_extensions_;
+    std::vector<const char*> enabled_instance_extensions_;
+    // 在 device 创建的时，可选的 pNext 结构
+    void* device_create_pNext = nullptr;
+
+public:
+    void initVulkan();
+
+    virtual void createInstance();
     
+    void setValidation(bool validation) { vulkan_settings_.validation = validation; }
 };
 
 } // namespace ST

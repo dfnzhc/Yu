@@ -67,7 +67,7 @@ bool CheckResult(VkResult result, const char* message)
             LOG_ERROR("VkResult {} - {}", result, GetResultString(result));
         }
 
-        throw YuanException("Critical Vulkan Error");
+        throw std::runtime_error("Critical Vulkan Error");
     }
 
     return false;
@@ -82,7 +82,7 @@ bool CheckResult(VkResult result, const char* file, int32_t line)
     if (result < 0) {
         LOG_ERROR("%s(%d): Vulkan Error : %s", file, line, GetResultString(result));
 
-        throw YuanException("Critical Vulkan Error");
+        throw std::runtime_error("Critical Vulkan Error");
     }
 
     return false;
