@@ -6,14 +6,15 @@
 
 #include <vulkan/vulkan_core.h>
 #include "yuan/platform/Application.hpp"
+#include "vk_device.hpp"
 
-namespace ST {
+namespace ST::VK {
 
-class vk_AppBase : public Yuan::Application
+class AppBase : public Yuan::Application
 {
 public:
-    vk_AppBase() = default;
-    virtual ~vk_AppBase() {};
+    AppBase() = default;
+    virtual ~AppBase() {};
 
     //--------------------------------------------------------------------------------------------------
     // 基础的设置
@@ -57,6 +58,40 @@ protected:
         uint32_t apiVersion = VK_API_VERSION_1_3;
     } vulkan_properties_;
 
+
+    VkInstance instance_{};
+    std::vector<std::string> supported_instance_extensions_;
+
+    VkDebugUtilsMessengerEXT Debug_messenger_{};
+    // 物理设备 GPU
+    VkPhysicalDevice physical_device_{};
+    // 物理设备的相关属性和特质
+    VkPhysicalDeviceProperties device_properties_{};
+    VkPhysicalDeviceFeatures device_features_{};
+    VkPhysicalDeviceMemoryProperties device_memory_properties_{};
+    VkPhysicalDeviceFeatures enabled_features_{};
+    // 启用的设备和实例扩展
+    std::vector<const char*> enabled_device_extensions_;
+    std::vector<const char*> enabled_instance_extensions_;
+    // 在 device 创建的时，可选的 pNext 结构
+    void* device_create_pNext = nullptr;
+    
+    VkDevice device_{};
+    VkQueue queue_{};
+	VkFormat depth_format_;
+	VkCommandPool cmdPool_{};
+    
+	// 同步信号器
+	struct {
+		// 交换链的图像展示
+		VkSemaphore presentComplete;
+		// 命令缓冲区的提交和执行
+		VkSemaphore renderComplete;
+	} semaphores;
+	std::vector<VkFence> waitFences;
+    
+    
+public:
     struct
     {
 #ifdef NDEBUG
@@ -64,29 +99,16 @@ protected:
 #else
         bool validation = true;
 #endif
-    } vulkan_settings_;
+    } settings_;
 
-    VkInstance instance_{};
-    std::vector<std::string> supported_instance_extensions_;
-    // 物理设备 GPU
-    VkPhysicalDevice physical_device_{};
-    // 物理设备的相关属性和特质
-    VkPhysicalDeviceProperties device_properties_{};
-    VkPhysicalDeviceFeatures device_features_{};
-    VkPhysicalDeviceMemoryProperties device_memory_properties_{};
-    VkPhysicalDeviceFeatures enabled_features{};
-    // 启用的设备和实例扩展
-    std::vector<const char*> enabled_device_extensions_;
-    std::vector<const char*> enabled_instance_extensions_;
-    // 在 device 创建的时，可选的 pNext 结构
-    void* device_create_pNext = nullptr;
-
+    VulkanDevice* vulkan_device_ = nullptr;
 public:
     void initVulkan();
 
     virtual void createInstance();
-    
-    void setValidation(bool validation) { vulkan_settings_.validation = validation; }
+    virtual void getDeviceEnabledFeatures() {}
+
+    void setValidation(bool validation) { settings_.validation = validation; }
 };
 
 } // namespace ST

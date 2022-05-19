@@ -8,12 +8,11 @@
 #include <vulkan/vulkan_core.h>
 
 
-namespace ST {
+namespace ST::VK {
 
 bool CheckResult(VkResult result, const char* msg = nullptr);
 bool CheckResult(VkResult result, const char* file, int32_t line);
 
-
-#define VK_CHECK(result) ST::CheckResult(result, __FILE__, __LINE__)
+#define VK_CHECK(result) ST::VK::CheckResult(result, __FILE__, __LINE__)
 
 } // namespace ST

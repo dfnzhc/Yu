@@ -18,7 +18,7 @@ TEST_CASE("test", "[TestLog]")
     
     Yuan::WinPlatform platform;
     
-    ST::vk_AppBase vk_app{};
+    ST::VK::AppBase vk_app{};
 
     platform.setApplication(&vk_app);
     

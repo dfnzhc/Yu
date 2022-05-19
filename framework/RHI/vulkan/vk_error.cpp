@@ -4,7 +4,7 @@
 
 #include "vk_error.hpp"
 
-namespace ST {
+namespace ST::VK {
 
 const char* GetResultString(VkResult result)
 {
