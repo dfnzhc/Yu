@@ -7,6 +7,7 @@
 #include <vulkan/vulkan_core.h>
 #include "yuan/platform/Application.hpp"
 #include "vk_device.hpp"
+#include "vk_swapchain.hpp"
 
 namespace ST::VK {
 
@@ -24,6 +25,11 @@ public:
      * @param platform The platform the application is being run on
      */
     virtual bool prepare(Yuan::Platform& platform) override;
+
+    /**
+     * @brief setup application properties
+     */
+    virtual void setup() override;
 
     /**
      * @brief Updates the application
@@ -58,7 +64,6 @@ protected:
         uint32_t apiVersion = VK_API_VERSION_1_3;
     } vulkan_properties_;
 
-
     VkInstance instance_{};
     std::vector<std::string> supported_instance_extensions_;
 
@@ -75,22 +80,33 @@ protected:
     std::vector<const char*> enabled_instance_extensions_;
     // 在 device 创建的时，可选的 pNext 结构
     void* device_create_pNext = nullptr;
-    
+
     VkDevice device_{};
     VkQueue queue_{};
-	VkFormat depth_format_;
-	VkCommandPool cmdPool_{};
-    
-	// 同步信号器
-	struct {
-		// 交换链的图像展示
-		VkSemaphore presentComplete;
-		// 命令缓冲区的提交和执行
-		VkSemaphore renderComplete;
-	} semaphores;
-	std::vector<VkFence> waitFences;
-    
-    
+    VkFormat depth_format_;
+    VkCommandPool cmd_pool_;
+    VkPipelineStageFlags submit_pipeline_stages_ = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkSubmitInfo submit_info_{};
+    std::vector<VkCommandBuffer> drawCmdBuffers;
+    VkRenderPass renderPass = VK_NULL_HANDLE;
+    std::vector<VkFramebuffer> frameBuffers;
+    uint32_t currentBuffer = 0;
+    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+    std::vector<VkShaderModule> shaderModules;
+    VkPipelineCache pipelineCache;
+
+    VulkanSwapChain swap_chain_;
+
+    // 同步信号器
+    struct
+    {
+        // 交换链的图像展示
+        VkSemaphore presentComplete;
+        // 命令缓冲区的提交和执行
+        VkSemaphore renderComplete;
+    } semaphores_;
+    std::vector<VkFence> waitFences;
+
 public:
     struct
     {
@@ -99,11 +115,32 @@ public:
 #else
         bool validation = true;
 #endif
+        bool vsync = false;
     } settings_;
+
+    struct
+    {
+        VkImage image;
+        VkDeviceMemory mem;
+        VkImageView view;
+    } depthStencil;
+    
+    uint32_t width_ = 1280;
+    uint32_t height_ = 720;
 
     VulkanDevice* vulkan_device_ = nullptr;
 public:
     void initVulkan();
+    void createCommandPool();
+    void createCommandBuffers();
+    void destroyCommandBuffers();
+    void createSynchronizationPrimitives();
+    void setupDepthStencil();
+    void setupRenderPass();
+    void createPipelineCache();
+    void setupFrameBuffer();
+
+    virtual void setupVulkan();
 
     virtual void createInstance();
     virtual void getDeviceEnabledFeatures() {}

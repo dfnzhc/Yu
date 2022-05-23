@@ -18,7 +18,7 @@ set(RHI_VULKAN_FILES
         
         # source files
         RHI/vulkan/vk_error.cpp
-        RHI/vulkan/vk_appbase.cpp RHI/vulkan/vk_appbase.hpp RHI/vulkan/vk_utils.cpp RHI/vulkan/vk_utils.hpp RHI/vulkan/vk_device.cpp RHI/vulkan/vk_device.hpp RHI/vulkan/vk_buffer.cpp RHI/vulkan/vk_buffer.hpp RHI/vulkan/vk_initializers.hpp)
+        RHI/vulkan/vk_appbase.cpp RHI/vulkan/vk_appbase.hpp RHI/vulkan/vk_utils.cpp RHI/vulkan/vk_utils.hpp RHI/vulkan/vk_device.cpp RHI/vulkan/vk_device.hpp RHI/vulkan/vk_buffer.cpp RHI/vulkan/vk_buffer.hpp RHI/vulkan/vk_initializers.hpp RHI/vulkan/vk_swapchain.cpp RHI/vulkan/vk_swapchain.hpp)
 
 # set the group of the source files
 source_group("common\\"     FILES ${COMMON_FILES})
