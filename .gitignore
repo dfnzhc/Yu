@@ -1,3 +1,4 @@
 ﻿/cmake-build-debug/
 /cmake-build-release/
 .idea/
+/data/shaders/spv/

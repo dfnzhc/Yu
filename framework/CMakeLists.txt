@@ -15,14 +15,15 @@ set(COMMON_FILES
 set(RHI_VULKAN_FILES
         # header files
         RHI/vulkan/vk_error.hpp
-        
+
         # source files
         RHI/vulkan/vk_error.cpp
         RHI/vulkan/vk_appbase.cpp RHI/vulkan/vk_appbase.hpp RHI/vulkan/vk_utils.cpp RHI/vulkan/vk_utils.hpp RHI/vulkan/vk_device.cpp RHI/vulkan/vk_device.hpp RHI/vulkan/vk_buffer.cpp RHI/vulkan/vk_buffer.hpp RHI/vulkan/vk_initializers.hpp RHI/vulkan/vk_swapchain.cpp RHI/vulkan/vk_swapchain.hpp)
 
+
 # set the group of the source files
-source_group("common\\"     FILES ${COMMON_FILES})
-source_group("RHI\\vulkan"  FILES ${RHI_VULKAN_FILES})
+source_group("common\\" FILES ${COMMON_FILES})
+source_group("RHI\\vulkan" FILES ${RHI_VULKAN_FILES})
 
 set(PROJECT_FILES
         ${COMMON_FILES}
@@ -36,19 +37,17 @@ add_library(${PROJECT_NAME} STATIC ${PROJECT_FILES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${SETARIA_DEFINITIONS})
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
 
-if(${SETARIA_WARNING_AS_ERROR})
+if (${SETARIA_WARNING_AS_ERROR})
     message(STATUS "Warnings as Errors Enabled")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         target_compile_options(${PROJECT_NAME} PRIVATE -Werror)
     elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         target_compile_options(${PROJECT_NAME} PRIVATE /W3 /WX)
-    endif()
-endif()
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
+    endif ()
+endif ()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME}
         PUBLIC
         Vulkan::Vulkan
         yuan

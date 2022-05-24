@@ -99,7 +99,7 @@ void DestroyDebugMessenger(VkInstance instance,
                            VkDebugUtilsMessengerEXT pDebugMessenger,
                            const VkAllocationCallbacks* pAllocator)
 {
-    auto func = 
+    auto func =
         (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
         func(instance, pDebugMessenger, pAllocator);
@@ -144,6 +144,37 @@ VkBool32 GetSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkFormat* dept
     }
 
     return false;
+}
+
+VkShaderModule LoadShader(const char* fileName, VkDevice device)
+{
+    std::ifstream is{fileName, std::ios::binary | std::ios::in | std::ios::ate};
+
+    if (!is.is_open()) {
+        LOG_ERROR("Can not open shader file: {}.", fileName);
+        return VK_NULL_HANDLE;
+    }
+
+    size_t size = is.tellg();
+    if (size == 0) {
+        LOG_ERROR("Shader file: {} is empty.", fileName);
+        return VK_NULL_HANDLE;
+    }
+
+    is.seekg(0, std::ios::beg);
+    std::vector<char> shaderCode(size);
+    is.read(shaderCode.data(), size);
+    is.close();
+
+    VkShaderModule shaderModule;
+    VkShaderModuleCreateInfo moduleCreateInfo{};
+    moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    moduleCreateInfo.codeSize = size;
+    moduleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
+
+    VK_CHECK(vkCreateShaderModule(device, &moduleCreateInfo, nullptr, &shaderModule));
+    
+    return shaderModule;
 }
 
 } // namespace ST::VK

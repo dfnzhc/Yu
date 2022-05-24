@@ -21,4 +21,7 @@ void DestroyDebugMessenger(VkInstance instance,
 std::string PhysicalDeviceTypeString(VkPhysicalDeviceType type);
 
 VkBool32 GetSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkFormat* depthFormat);
+
+VkShaderModule LoadShader(const char* fileName, VkDevice device);
+
 } // namespace ST
