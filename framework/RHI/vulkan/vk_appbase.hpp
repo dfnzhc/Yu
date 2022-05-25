@@ -55,34 +55,45 @@ public:
      */
     virtual void input_event(const Yuan::InputEvent& input_event) override;
 
-    //--------------------------------------------------------------------------------------------------
-    // Vulkan 变量和方法
-    //--------------------------------------------------------------------------------------------------
 protected:
+    //--------------------------------------------------------------------------------------------------
+    // Vulkan 相关变量
+    //--------------------------------------------------------------------------------------------------
     struct
     {
         uint32_t apiVersion = VK_API_VERSION_1_3;
     } vulkan_properties_;
 
+    /// Vulkan 实例相关 ------------------------------------------------------------
     VkInstance instance_{};
     std::vector<std::string> supported_instance_extensions_;
-
     VkDebugUtilsMessengerEXT Debug_messenger_{};
-    // 物理设备 GPU
+    // 实例扩展
+    std::vector<const char*> enabled_instance_extensions_;
+
+    /// Vulkan 设备相关 ------------------------------------------------------------
+    // 物理设备(GPU)
     VkPhysicalDevice physical_device_{};
-    // 物理设备的相关属性和特质
+    // 物理设备的相关属性和特性
     VkPhysicalDeviceProperties device_properties_{};
     VkPhysicalDeviceFeatures device_features_{};
     VkPhysicalDeviceMemoryProperties device_memory_properties_{};
     VkPhysicalDeviceFeatures enabled_features_{};
-    // 启用的设备和实例扩展
+    // 设备扩展
     std::vector<const char*> enabled_device_extensions_;
-    std::vector<const char*> enabled_instance_extensions_;
-    // 在 device 创建的时，可选的 pNext 结构
+    // 在 device 创建时，可选的 pNext 结构
     void* device_create_pNext = nullptr;
-
+    // 逻辑设备 与 队列
     VkDevice device_{};
     VkQueue queue_{};
+
+    /// surface 和交换链相关---------------------------------------------------------
+    VulkanSwapChain swap_chain_;
+
+    /// 流水线相关------------------------------------------------------------------
+    // 着色器模组
+    std::vector<VkShaderModule> shaderModules;
+
     VkFormat depth_format_;
     VkCommandPool cmd_pool_;
     VkPipelineStageFlags submit_pipeline_stages_ = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -92,10 +103,7 @@ protected:
     std::vector<VkFramebuffer> frameBuffers;
     uint32_t currentBuffer = 0;
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-    std::vector<VkShaderModule> shaderModules;
     VkPipelineCache pipelineCache;
-
-    VulkanSwapChain swap_chain_;
 
     // 同步信号器
     struct
@@ -107,6 +115,36 @@ protected:
     } semaphores_;
     std::vector<VkFence> waitFences;
 
+    //--------------------------------------------------------------------------------------------------
+    // Vulkan 相关函数
+    //--------------------------------------------------------------------------------------------------
+    
+    void initVulkan();
+    void createInstance();
+    void createSwapChain();
+    void preparePipeline();
+    
+    virtual void createPipeline();
+    
+    virtual void setupShaderModule();
+    virtual void setupVertexInput();
+    virtual void setupViewport();
+    virtual void setupRasterizer();
+    virtual void setupSample();
+    virtual void setupDepthStencil();
+    virtual void setupColorBlend();
+    virtual void setupDynamic();
+    virtual void setupPipelineLayout();
+    virtual void setupRenderPass();
+    virtual void setupFrameBuffer();
+    
+    void createCommandPool();
+    void createCommandBuffers();
+    void destroyCommandBuffers();
+    void createSynchronizationPrimitives();
+    void createPipelineCache();
+
+    virtual void prepare();
 public:
     struct
     {
@@ -124,27 +162,17 @@ public:
         VkDeviceMemory mem;
         VkImageView view;
     } depthStencil;
-    
+
     uint32_t width_ = 1280;
     uint32_t height_ = 720;
 
     VulkanDevice* vulkan_device_ = nullptr;
 public:
-    void initVulkan();
-    void createCommandPool();
-    void createCommandBuffers();
-    void destroyCommandBuffers();
-    void createSynchronizationPrimitives();
-    void setupDepthStencil();
-    void setupRenderPass();
-    void createPipelineCache();
-    void setupFrameBuffer();
+    VkPipelineShaderStageCreateInfo loadShader(const std::string& fileName, VkShaderStageFlagBits stage);
 
-    virtual void setupVulkan();
-
-    virtual void createInstance();
+    virtual void setInstanceExtensions() {}
+    virtual void setDeviceExtensions() {}
     virtual void getDeviceEnabledFeatures() {}
-
     void setValidation(bool validation) { settings_.validation = validation; }
 };
 

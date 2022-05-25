@@ -4,7 +4,6 @@
 
 #include "vk_swapchain.hpp"
 #include "vk_error.hpp"
-#include <vulkan/vulkan_win32.h>
 
 namespace ST::VK {
 
@@ -68,7 +67,7 @@ void VulkanSwapChain::initSurface(GLFWwindow* window)
 
     // 获取支持的 surface 格式
     uint32_t formatCount;
-    VK_CHECK(fpGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, NULL));
+    VK_CHECK(fpGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr));
     assert(formatCount > 0);
 
     std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
@@ -219,7 +218,7 @@ void VulkanSwapChain::create(uint32_t* width, uint32_t* height, bool vsync)
         if (surfCaps.supportedCompositeAlpha & compositeAlphaFlag) {
             compositeAlpha = compositeAlphaFlag;
             break;
-        };
+        }
     }
 
     VkSwapchainCreateInfoKHR swapchainCI = {};
@@ -326,7 +325,7 @@ VkResult VulkanSwapChain::queuePresent(VkQueue queue, uint32_t imageIndex, VkSem
 {
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.pNext = NULL;
+    presentInfo.pNext = nullptr;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &swapChain;
     presentInfo.pImageIndices = &imageIndex;

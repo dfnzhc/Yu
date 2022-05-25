@@ -25,7 +25,7 @@ void AppBase::setup()
     Application::setup();
 
     initVulkan();
-    setupVulkan();
+    prepare();
 }
 
 void AppBase::update(float delta_time)
@@ -39,30 +39,30 @@ void AppBase::finish()
 
     swap_chain_.cleanup();
 
-    destroyCommandBuffers();
-
-    if (renderPass != VK_NULL_HANDLE) {
-        vkDestroyRenderPass(device_, renderPass, nullptr);
-    }
-
-    for (auto& frameBuffer : frameBuffers) {
-        vkDestroyFramebuffer(device_, frameBuffer, nullptr);
-    }
-
-    vkDestroyImageView(device_, depthStencil.view, nullptr);
-    vkDestroyImage(device_, depthStencil.image, nullptr);
-    vkFreeMemory(device_, depthStencil.mem, nullptr);
-
-    vkDestroyPipelineCache(device_, pipelineCache, nullptr);
+//    destroyCommandBuffers();
+//
+//    if (renderPass != VK_NULL_HANDLE) {
+//        vkDestroyRenderPass(device_, renderPass, nullptr);
+//    }
+//
+//    for (auto& frameBuffer : frameBuffers) {
+//        vkDestroyFramebuffer(device_, frameBuffer, nullptr);
+//    }
+//
+//    vkDestroyImageView(device_, depthStencil.view, nullptr);
+//    vkDestroyImage(device_, depthStencil.image, nullptr);
+//    vkFreeMemory(device_, depthStencil.mem, nullptr);
+//
+//    vkDestroyPipelineCache(device_, pipelineCache, nullptr);
 
     vkDestroyCommandPool(device_, cmd_pool_, nullptr);
     vkDestroySemaphore(device_, semaphores_.presentComplete, nullptr);
     vkDestroySemaphore(device_, semaphores_.renderComplete, nullptr);
 
-    for (auto& fence : waitFences) {
-        vkDestroyFence(device_, fence, nullptr);
-    }
-    
+//    for (auto& fence : waitFences) {
+//        vkDestroyFence(device_, fence, nullptr);
+//    }
+
     delete vulkan_device_;
 
     if (settings_.validation) {
@@ -83,9 +83,23 @@ void AppBase::input_event(const InputEvent& input_event)
     Application::input_event(input_event);
 }
 
+/**
+ * @brief 按以下的流程初始化 Vulkan
+ * 
+ * 创建 Vulkan 实例：Instance、DebugMessenger
+ * 创建设备：物理设备和逻辑设备
+ * 创建 surface 和交换链
+ * 创建用于同步的互斥量
+ * 
+ */
 void AppBase::initVulkan()
 {
     LOG_INFO("Init vulkan...")
+
+    // set the extensions
+    setInstanceExtensions();
+    setDeviceExtensions();
+
     // first create vulkan instance
     createInstance();
 
@@ -120,6 +134,7 @@ void AppBase::initVulkan()
 
     // 创建Vulkan设备
     // 这由一个单独的类来处理，该类得到一个逻辑设备的表示，并封装了与设备有关的功能
+    LOG_INFO("\tCreate vulkan devices...");
     vulkan_device_ = new VulkanDevice(physical_device_);
     VK_CHECK(vulkan_device_->createLogicalDevice(enabled_features_, enabled_device_extensions_, device_create_pNext));
 
@@ -238,63 +253,89 @@ void AppBase::createInstance()
 
 }
 
-void AppBase::setupVulkan()
+void AppBase::prepare()
 {
-    auto window = static_cast<GLFW_Window*>(platform_->getWindow());
-    swap_chain_.initSurface(window->getGlfwWindowHandle());
+    createSwapChain();
+
+    preparePipeline();
+    createPipeline();
 
     createCommandPool();
+//    createCommandBuffers();
+//    createSynchronizationPrimitives();
+//    setupDepthStencil();
+//    setupRenderPass();
+//    createPipelineCache();
+//    setupFrameBuffer();
+}
+
+/**
+ * @brief 首先根据窗口创建 surface，然后创建交换链，同时为交换链的图像创建图像视图
+ */
+void AppBase::createSwapChain()
+{
+    auto window = static_cast<GLFW_Window*>(platform_->getWindow());
+
+    swap_chain_.initSurface(window->getGlfwWindowHandle());
 
     width_ = window->getExtent().width;
     height_ = window->getExtent().height;
     swap_chain_.create(&width_, &height_, settings_.vsync);
-
-    createCommandBuffers();
-    createSynchronizationPrimitives();
-    setupDepthStencil();
-    setupRenderPass();
-    createPipelineCache();
-    setupFrameBuffer();
 }
 
-void AppBase::createCommandPool()
+void AppBase::preparePipeline()
 {
-    VkCommandPoolCreateInfo cmdPoolInfo = {};
-    cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    cmdPoolInfo.queueFamilyIndex = swap_chain_.queueNodeIndex;
-    cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    VK_CHECK(vkCreateCommandPool(device_, &cmdPoolInfo, nullptr, &cmd_pool_));
+    setupShaderModule();
+    setupVertexInput();
 }
 
-void AppBase::createCommandBuffers()
+void AppBase::createPipeline()
 {
-    // 为每个交换链图像创建一个命令缓冲区，并重复使用以进行渲染
-    drawCmdBuffers.resize(swap_chain_.imageCount);
-
-    VkCommandBufferAllocateInfo cmdBufAllocateInfo =
-        ST::VK::commandBufferAllocateInfo(
-            cmd_pool_,
-            VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            static_cast<uint32_t>(drawCmdBuffers.size()));
-
-    VK_CHECK(vkAllocateCommandBuffers(device_, &cmdBufAllocateInfo, drawCmdBuffers.data()));
 }
 
-void AppBase::destroyCommandBuffers()
+/**
+ * @brief 载入着色器并创建着色器模组
+ */
+void AppBase::setupShaderModule()
 {
-    vkFreeCommandBuffers(device_, cmd_pool_, static_cast<uint32_t>(drawCmdBuffers.size()), drawCmdBuffers.data());
+
 }
 
-void AppBase::createSynchronizationPrimitives()
+/**
+ * @brief 设置顶点的输入和装配格式, 也就是 VkPipelineVertexInputStateCreateInfo 和 VkPipelineInputAssemblyStateCreateInfo
+ */
+void AppBase::setupVertexInput()
 {
-    // Wait fences to sync command buffer access
-    VkFenceCreateInfo fenceCreateInfo = ST::VK::fenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
-    waitFences.resize(drawCmdBuffers.size());
-    for (auto& fence : waitFences) {
-        VK_CHECK(vkCreateFence(device_, &fenceCreateInfo, nullptr, &fence));
-    }
+
 }
 
+/**
+ * @brief 设置视口和裁剪矩形
+ */
+void AppBase::setupViewport()
+{
+
+}
+
+/**
+ * @brief 设置光栅器
+ */
+void AppBase::setupRasterizer()
+{
+
+}
+
+/**
+ * @brief 设置多重采样状态
+ */
+void AppBase::setupSample()
+{
+
+}
+
+/**
+ * @brief 设置深度和模板信息
+ */
 void AppBase::setupDepthStencil()
 {
     VkImageCreateInfo imageCI{};
@@ -307,8 +348,9 @@ void AppBase::setupDepthStencil()
     imageCI.samples = VK_SAMPLE_COUNT_1_BIT;
     imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-
+    imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     VK_CHECK(vkCreateImage(device_, &imageCI, nullptr, &depthStencil.image));
+    
     VkMemoryRequirements memReqs{};
     vkGetImageMemoryRequirements(device_, depthStencil.image, &memReqs);
 
@@ -334,6 +376,30 @@ void AppBase::setupDepthStencil()
         imageViewCI.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
     VK_CHECK(vkCreateImageView(device_, &imageViewCI, nullptr, &depthStencil.view));
+}
+
+/**
+ * @brief 设置颜色的混合模式
+ */
+void AppBase::setupColorBlend()
+{
+
+}
+
+/**
+ * @brief 设置流水线中的动态阶段
+ */
+void AppBase::setupDynamic()
+{
+
+}
+
+/**
+ * @brief 设置流水线布局
+ */
+void AppBase::setupPipelineLayout()
+{
+
 }
 
 void AppBase::setupRenderPass()
@@ -408,6 +474,46 @@ void AppBase::setupRenderPass()
     VK_CHECK(vkCreateRenderPass(device_, &renderPassInfo, nullptr, &renderPass));
 }
 
+void AppBase::createCommandPool()
+{
+    VkCommandPoolCreateInfo cmdPoolInfo = {};
+    cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    cmdPoolInfo.queueFamilyIndex = swap_chain_.queueNodeIndex;
+    cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    VK_CHECK(vkCreateCommandPool(device_, &cmdPoolInfo, nullptr, &cmd_pool_));
+}
+
+void AppBase::createCommandBuffers()
+{
+    // 为每个交换链图像创建一个命令缓冲区，并重复使用以进行渲染
+    drawCmdBuffers.resize(swap_chain_.imageCount);
+
+    VkCommandBufferAllocateInfo cmdBufAllocateInfo =
+        ST::VK::commandBufferAllocateInfo(
+            cmd_pool_,
+            VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            static_cast<uint32_t>(drawCmdBuffers.size()));
+
+    VK_CHECK(vkAllocateCommandBuffers(device_, &cmdBufAllocateInfo, drawCmdBuffers.data()));
+}
+
+void AppBase::destroyCommandBuffers()
+{
+    vkFreeCommandBuffers(device_, cmd_pool_, static_cast<uint32_t>(drawCmdBuffers.size()), drawCmdBuffers.data());
+}
+
+void AppBase::createSynchronizationPrimitives()
+{
+    // Wait fences to sync command buffer access
+    VkFenceCreateInfo fenceCreateInfo = ST::VK::fenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
+    waitFences.resize(drawCmdBuffers.size());
+    for (auto& fence : waitFences) {
+        VK_CHECK(vkCreateFence(device_, &fenceCreateInfo, nullptr, &fence));
+    }
+}
+
+
+
 void AppBase::createPipelineCache()
 {
     VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
@@ -438,6 +544,19 @@ void AppBase::setupFrameBuffer()
         attachments[0] = swap_chain_.buffers[i].view;
         VK_CHECK(vkCreateFramebuffer(device_, &frameBufferCreateInfo, nullptr, &frameBuffers[i]));
     }
+}
+
+VkPipelineShaderStageCreateInfo AppBase::loadShader(const std::string& fileName, VkShaderStageFlagBits stage)
+{
+    VkPipelineShaderStageCreateInfo shaderStage = {};
+    shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStage.stage = stage;
+    shaderStage.module = LoadShader(fileName.c_str(), device_);
+    assert(shaderStage.module != VK_NULL_HANDLE);
+    shaderStage.pName = "main";
+
+    shaderModules.push_back(shaderStage.module);
+    return shaderStage;
 }
 
 } // namespace ST
