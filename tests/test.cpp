@@ -9,6 +9,7 @@
 #include "win_platform.hpp"
 #include "logger.hpp"
 #include "RHI/vulkan/vk_appbase.hpp"
+#include "filesystem.hpp"
 
 namespace fs = std::filesystem;
 

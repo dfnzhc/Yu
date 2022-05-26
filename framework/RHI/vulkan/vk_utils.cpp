@@ -7,6 +7,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <yuan/platform/filesystem.hpp>
+
 namespace ST::VK {
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(
@@ -146,9 +148,42 @@ VkBool32 GetSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkFormat* dept
     return false;
 }
 
-VkShaderModule LoadShader(const char* fileName, VkDevice device)
+VkShaderStageFlagBits GetShaderType(std::string_view fileName)
 {
-    std::ifstream is{fileName, std::ios::binary | std::ios::in | std::ios::ate};
+    auto ext = Yuan::GetFileExtension(fileName);
+
+    if (ext == "vert") {
+        return VK_SHADER_STAGE_VERTEX_BIT;
+    } else if (ext == "frag") {
+        return VK_SHADER_STAGE_FRAGMENT_BIT;
+    } else if (ext == "comp") {
+        return VK_SHADER_STAGE_COMPUTE_BIT;
+    } else if (ext == "geom") {
+        return VK_SHADER_STAGE_GEOMETRY_BIT;
+    } else if (ext == "tesc") {
+        return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+    } else if (ext == "tese") {
+        return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+    } else if (ext == "rgen") {
+        return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+    } else if (ext == "rahit") {
+        return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+    } else if (ext == "rchit") {
+        return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+    } else if (ext == "rint") {
+        return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+    } else if (ext == "rmiss") {
+        return VK_SHADER_STAGE_MISS_BIT_KHR;
+    } else if (ext == "rcall") {
+        return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+    }
+    
+    throw std::runtime_error("No proper shader type.");
+}
+
+VkShaderModule LoadShader(std::string_view fileName, VkDevice device)
+{
+    std::ifstream is{std::string{fileName}, std::ios::binary | std::ios::in | std::ios::ate};
 
     if (!is.is_open()) {
         LOG_ERROR("Can not open shader file: {}.", fileName);
@@ -173,7 +208,7 @@ VkShaderModule LoadShader(const char* fileName, VkDevice device)
     moduleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
 
     VK_CHECK(vkCreateShaderModule(device, &moduleCreateInfo, nullptr, &shaderModule));
-    
+
     return shaderModule;
 }
 

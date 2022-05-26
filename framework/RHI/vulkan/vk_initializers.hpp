@@ -410,6 +410,14 @@ inline VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateIn
     return pipelineInputAssemblyStateCreateInfo;
 }
 
+inline VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo()
+{
+    VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo{};
+    pipelineInputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+
+    return pipelineInputAssemblyStateCreateInfo;
+}
+
 inline VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo(
     VkPolygonMode polygonMode,
     VkCullModeFlags cullMode,
@@ -424,6 +432,19 @@ inline VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateIn
     pipelineRasterizationStateCreateInfo.flags = flags;
     pipelineRasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
     pipelineRasterizationStateCreateInfo.lineWidth = 1.0f;
+    return pipelineRasterizationStateCreateInfo;
+}
+
+inline VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo()
+{
+    VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo{};
+    pipelineRasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    pipelineRasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
+    pipelineRasterizationStateCreateInfo.lineWidth = 1.0f;
+    pipelineRasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;    // Optional
+    pipelineRasterizationStateCreateInfo.depthBiasClamp = 0.0f;             // Optional
+    pipelineRasterizationStateCreateInfo.depthBiasSlopeFactor = 0.0f;       // Optional    
+
     return pipelineRasterizationStateCreateInfo;
 }
 
@@ -448,10 +469,18 @@ inline VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo(
     return pipelineColorBlendStateCreateInfo;
 }
 
+inline VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo()
+{
+    VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo{};
+    pipelineColorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+
+    return pipelineColorBlendStateCreateInfo;
+}
+
 inline VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo(
     VkBool32 depthTestEnable,
     VkBool32 depthWriteEnable,
-    VkCompareOp depthCompareOp)
+    VkCompareOp depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL)
 {
     VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo{};
     pipelineDepthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -483,6 +512,11 @@ inline VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo(
     pipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     pipelineMultisampleStateCreateInfo.rasterizationSamples = rasterizationSamples;
     pipelineMultisampleStateCreateInfo.flags = flags;
+    pipelineMultisampleStateCreateInfo.minSampleShading = 1.0f; // Optional
+    pipelineMultisampleStateCreateInfo.pSampleMask = nullptr; // Optional
+    pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // Optional
+    pipelineMultisampleStateCreateInfo.alphaToOneEnable = VK_FALSE; // Optional
+    
     return pipelineMultisampleStateCreateInfo;
 }
 
@@ -653,4 +687,12 @@ inline VkWriteDescriptorSetAccelerationStructureKHR writeDescriptorSetAccelerati
         VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
     return writeDescriptorSetAccelerationStructureKHR;
 }
+
+inline VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo()
+{
+    VkPipelineShaderStageCreateInfo shaderStageCI{};
+    shaderStageCI.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    return shaderStageCI;
+}
+
 } // namespace ST::VK

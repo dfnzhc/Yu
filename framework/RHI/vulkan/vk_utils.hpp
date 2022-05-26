@@ -22,6 +22,7 @@ std::string PhysicalDeviceTypeString(VkPhysicalDeviceType type);
 
 VkBool32 GetSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkFormat* depthFormat);
 
-VkShaderModule LoadShader(const char* fileName, VkDevice device);
+VkShaderStageFlagBits GetShaderType(std::string_view fileName);
+VkShaderModule LoadShader(std::string_view fileName, VkDevice device);
 
 } // namespace ST

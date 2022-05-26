@@ -90,20 +90,31 @@ protected:
     /// surface 和交换链相关---------------------------------------------------------
     VulkanSwapChain swap_chain_;
 
+    /// 深度、模板缓冲区视图-----------------------------------------------------------
+    VkFormat depth_format_;
+    struct
+    {
+        VkImage image;
+        VkDeviceMemory mem;
+        VkImageView view;
+    } depthStencil;
+    
     /// 流水线相关------------------------------------------------------------------
     // 着色器模组
-    std::vector<VkShaderModule> shaderModules;
-
-    VkFormat depth_format_;
-    VkCommandPool cmd_pool_;
-    VkPipelineStageFlags submit_pipeline_stages_ = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkPipelineCache pipeline_cache_;
+    std::vector<VkShaderModule> shader_modules_;
+    VkPipelineLayout pipeline_layout_;
+    VkPipeline pipeline_;
+	VkDescriptorSetLayout descriptor_set_layout_;
+    
     VkSubmitInfo submit_info_{};
+    VkCommandPool cmd_pool_;
     std::vector<VkCommandBuffer> drawCmdBuffers;
-    VkRenderPass renderPass = VK_NULL_HANDLE;
-    std::vector<VkFramebuffer> frameBuffers;
-    uint32_t currentBuffer = 0;
-    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-    VkPipelineCache pipelineCache;
+    VkPipelineStageFlags submit_pipeline_stages_ = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkRenderPass render_pass_ = VK_NULL_HANDLE;
+    std::vector<VkFramebuffer> frame_buffers_;
+    uint32_t current_buffer_ = 0;
+    VkDescriptorPool descriptor_pool_ = VK_NULL_HANDLE;
 
     // 同步信号器
     struct
@@ -116,35 +127,24 @@ protected:
     std::vector<VkFence> waitFences;
 
     //--------------------------------------------------------------------------------------------------
-    // Vulkan 相关函数
+    // Vulkan 的初始化和基础设施的创建
     //--------------------------------------------------------------------------------------------------
-    
     void initVulkan();
     void createInstance();
     void createSwapChain();
-    void preparePipeline();
     
-    virtual void createPipeline();
-    
-    virtual void setupShaderModule();
-    virtual void setupVertexInput();
-    virtual void setupViewport();
-    virtual void setupRasterizer();
-    virtual void setupSample();
-    virtual void setupDepthStencil();
-    virtual void setupColorBlend();
-    virtual void setupDynamic();
-    virtual void setupPipelineLayout();
+    virtual void prepare();
+    virtual void createCommandPool();
+    virtual void createCommandBuffers();
+    virtual void destroyCommandBuffers();
+    virtual void createSynchronizationPrimitives();
+    virtual void createDepthStencilView();
+    virtual void createPipelineCache();
     virtual void setupRenderPass();
     virtual void setupFrameBuffer();
     
-    void createCommandPool();
-    void createCommandBuffers();
-    void destroyCommandBuffers();
-    void createSynchronizationPrimitives();
-    void createPipelineCache();
-
-    virtual void prepare();
+    virtual void preparePipeline();
+    virtual void setupDescriptorSetLayout();
 public:
     struct
     {
@@ -156,19 +156,14 @@ public:
         bool vsync = false;
     } settings_;
 
-    struct
-    {
-        VkImage image;
-        VkDeviceMemory mem;
-        VkImageView view;
-    } depthStencil;
+    
 
     uint32_t width_ = 1280;
     uint32_t height_ = 720;
 
     VulkanDevice* vulkan_device_ = nullptr;
 public:
-    VkPipelineShaderStageCreateInfo loadShader(const std::string& fileName, VkShaderStageFlagBits stage);
+    VkPipelineShaderStageCreateInfo loadShader(std::string_view fileName);
 
     virtual void setInstanceExtensions() {}
     virtual void setDeviceExtensions() {}
