@@ -131,6 +131,8 @@ inline VkSemaphoreCreateInfo semaphoreCreateInfo()
 {
     VkSemaphoreCreateInfo semaphoreCreateInfo{};
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    semaphoreCreateInfo.pNext = nullptr;
+    
     return semaphoreCreateInfo;
 }
 
@@ -504,6 +506,15 @@ inline VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo(
     return pipelineViewportStateCreateInfo;
 }
 
+
+inline VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo()
+{
+    VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo{};
+    pipelineViewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    
+    return pipelineViewportStateCreateInfo;
+}
+
 inline VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo(
     VkSampleCountFlagBits rasterizationSamples,
     VkPipelineMultisampleStateCreateFlags flags = 0)
@@ -542,6 +553,14 @@ inline VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo(
     pipelineDynamicStateCreateInfo.pDynamicStates = pDynamicStates.data();
     pipelineDynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(pDynamicStates.size());
     pipelineDynamicStateCreateInfo.flags = flags;
+    return pipelineDynamicStateCreateInfo;
+}
+
+inline VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo()
+{
+    VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
+    pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    
     return pipelineDynamicStateCreateInfo;
 }
 

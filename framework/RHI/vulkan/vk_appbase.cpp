@@ -26,12 +26,14 @@ void AppBase::setup()
     Application::setup();
 
     initVulkan();
-    prepare();
+    prepareVulkan();
 }
 
 void AppBase::update(float delta_time)
 {
     Application::update(delta_time);
+
+    draw();
 }
 
 void AppBase::finish()
@@ -157,25 +159,6 @@ void AppBase::initVulkan()
     // 向交换链设置相关的属性
     swap_chain_.connect(instance_, physical_device_, device_);
 
-    // 创建同步对象
-    VkSemaphoreCreateInfo semaphoreCreateInfo = ST::VK::semaphoreCreateInfo();
-    // 创建一个用于同步图像显示的信号
-    // 确保在开始向队列提交新的命令之前显示图像
-    VK_CHECK(vkCreateSemaphore(device_, &semaphoreCreateInfo, nullptr, &semaphores_.presentComplete));
-    // 创建一个用于同步命令提交的信号
-    // 确保在所有的命令被提交和执行之前，图像不会被呈现
-    VK_CHECK(vkCreateSemaphore(device_, &semaphoreCreateInfo, nullptr, &semaphores_.renderComplete));
-
-    // 设置提交信息结构
-    // 信号量在应用程序生命周期内保持不变
-    // 提交时等待交换链显示完成，提交后提示能够渲染
-    // 命令缓冲区的提交信息是在具体实现的时候设置的
-    submit_info_ = ST::VK::submitInfo();
-    submit_info_.pWaitDstStageMask = &submit_pipeline_stages_;
-    submit_info_.waitSemaphoreCount = 1;
-    submit_info_.pWaitSemaphores = &semaphores_.presentComplete;
-    submit_info_.signalSemaphoreCount = 1;
-    submit_info_.pSignalSemaphores = &semaphores_.renderComplete;
 }
 
 void AppBase::createInstance()
@@ -260,8 +243,10 @@ void AppBase::createInstance()
 
 }
 
-void AppBase::prepare()
+void AppBase::prepareVulkan()
 {
+    LOG_INFO("Prepare vulkan infrastructures..")
+
     createSwapChain();
 
     createCommandPool();
@@ -272,7 +257,8 @@ void AppBase::prepare()
     setupFrameBuffer();
 
     createPipelineCache();
-    preparePipeline();
+    setupPipeline();
+    buildCommandBuffer();
 }
 
 /**
@@ -395,7 +381,28 @@ void AppBase::destroyCommandBuffers()
 void AppBase::createSynchronizationPrimitives()
 {
     LOG_INFO("\tCreate synchronization...");
-    // Wait fences to sync command buffer access
+
+    // 创建同步对象
+    VkSemaphoreCreateInfo semaphoreCreateInfo = ST::VK::semaphoreCreateInfo();
+    // 创建一个用于同步图像显示的信号
+    // 确保在开始向队列提交新的命令之前显示图像
+    VK_CHECK(vkCreateSemaphore(device_, &semaphoreCreateInfo, nullptr, &semaphores_.presentComplete));
+    // 创建一个用于同步命令提交的信号
+    // 确保在所有的命令被提交和执行之前，图像不会被呈现
+    VK_CHECK(vkCreateSemaphore(device_, &semaphoreCreateInfo, nullptr, &semaphores_.renderComplete));
+
+    // 设置提交信息结构
+    // 信号量在应用程序生命周期内保持不变
+    // 提交时等待交换链显示完成，提交后提示能够渲染
+    // 只需要在具体实现的时候设置相应的命令缓冲区即可
+    submit_info_ = ST::VK::submitInfo();
+    submit_info_.pWaitDstStageMask = &submit_pipeline_stages_;
+    submit_info_.waitSemaphoreCount = 1;
+    submit_info_.pWaitSemaphores = &semaphores_.presentComplete;
+    submit_info_.signalSemaphoreCount = 1;
+    submit_info_.pSignalSemaphores = &semaphores_.renderComplete;
+
+    // 创建交换链图像个数的 fence 用于同步
     VkFenceCreateInfo fenceCreateInfo = ST::VK::fenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
     waitFences.resize(drawCmdBuffers.size());
     for (auto& fence : waitFences) {
@@ -480,7 +487,7 @@ void AppBase::setupFrameBuffer()
     }
 }
 
-void AppBase::preparePipeline()
+void AppBase::setupPipeline()
 {
     LOG_INFO("\tcreate pipeline...");
     auto pipelineCI = ST::VK::pipelineCreateInfo();
@@ -523,7 +530,21 @@ void AppBase::preparePipeline()
     auto multisampleState = ST::VK::pipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT);
 
     LOG_INFO("\t\tSet viewport state...");
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = static_cast<float>(width_);
+    viewport.height = static_cast<float>(height_);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = VkExtent2D{width_, height_};
+
     auto viewportState = ST::VK::pipelineViewportStateCreateInfo(1, 1);
+    viewportState.pViewports = &viewport;
+    viewportState.pScissors = &scissor;
 
     LOG_INFO("\t\tSet depth stencil state...");
     auto depthStencilState = ST::VK::pipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE);
@@ -535,11 +556,7 @@ void AppBase::preparePipeline()
     depthStencilState.front = depthStencilState.back;
 
     LOG_INFO("\t\tSet pipeline dynamic state...");
-    std::vector<VkDynamicState> dynamicStateEnables;
-    dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
-    dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
-    VkPipelineDynamicStateCreateInfo
-        dynamicState = ST::VK::pipelineDynamicStateCreateInfo(dynamicStateEnables.data(), static_cast<uint32_t>(dynamicStateEnables.size()));
+    auto dynamicState = ST::VK::pipelineDynamicStateCreateInfo();
 
     LOG_INFO("\t\tSet pipeline layout...");
     setupDescriptorSetLayout();
@@ -581,6 +598,62 @@ VkPipelineShaderStageCreateInfo AppBase::loadShader(std::string_view fileName)
 
     shader_modules_.push_back(shaderStage.module);
     return shaderStage;
+}
+
+void AppBase::buildCommandBuffer()
+{
+    LOG_INFO("\tBuild command buffer...");
+    auto cmdBeginInfo = ST::VK::commandBufferBeginInfo();
+
+    VkClearValue clearValues[2];
+    clearValues[0].color = {{0.2f, 0.3f, 0.7f, 1.0f}};
+    clearValues[1].depthStencil = {1.0f, 0};
+
+    auto renderPassBeginInfo = ST::VK::renderPassBeginInfo();
+    renderPassBeginInfo.renderPass = render_pass_;
+    renderPassBeginInfo.renderArea.offset = {0, 0};
+    renderPassBeginInfo.renderArea.extent = {width_, height_};
+    renderPassBeginInfo.clearValueCount = 2;
+    renderPassBeginInfo.pClearValues = clearValues;
+
+    for (auto i = 0; i < drawCmdBuffers.size(); ++i) {
+        renderPassBeginInfo.framebuffer = frame_buffers_[i];
+
+        auto cmdBuffer = drawCmdBuffers[i];
+        VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &cmdBeginInfo));
+
+        vkCmdBeginRenderPass(cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
+        vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
+        vkCmdEndRenderPass(cmdBuffer);
+
+        VK_CHECK(vkEndCommandBuffer(cmdBuffer));
+    }
+}
+
+void AppBase::draw()
+{
+    // 获取交换链下一个图像的索引
+    VK_CHECK(swap_chain_.acquireNextImage(semaphores_.presentComplete, &current_buffer_));
+
+    // 使用 fence 同步 CPU 与 GPU，直到该命令缓冲区中的命令被执行完毕
+    VK_CHECK(vkWaitForFences(device_, 1, &waitFences[current_buffer_], VK_TRUE, UINT64_MAX));
+    VK_CHECK(vkResetFences(device_, 1, &waitFences[current_buffer_]));
+
+    // 设置提交信息
+    submit_info_.commandBufferCount = 1;
+    submit_info_.pCommandBuffers = &drawCmdBuffers[current_buffer_];
+
+    // 将命令缓冲区提交到图像队列，并传入相应的 fence 用于同步
+    VK_CHECK(vkQueueSubmit(queue_, 1, &submit_info_, waitFences[current_buffer_]));
+
+    // 将当前的缓冲区呈现给交换链
+    // 将 submitInfo 中命令缓冲区提交所发出的信号传递给交换链作为等待信号
+    // 这样可以确保在图像被呈现给窗口系统之前，所有的命令都已经被提交
+    VkResult present = swap_chain_.queuePresent(queue_, current_buffer_, semaphores_.renderComplete);
+    if (!((present == VK_SUCCESS) || (present == VK_SUBOPTIMAL_KHR))) {
+        VK_CHECK(present);
+    }
 }
 
 } // namespace ST

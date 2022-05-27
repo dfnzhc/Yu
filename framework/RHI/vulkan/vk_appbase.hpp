@@ -107,12 +107,13 @@ protected:
     VkPipeline pipeline_;
 	VkDescriptorSetLayout descriptor_set_layout_;
     
-    VkSubmitInfo submit_info_{};
     VkCommandPool cmd_pool_;
     std::vector<VkCommandBuffer> drawCmdBuffers;
-    VkPipelineStageFlags submit_pipeline_stages_ = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     VkRenderPass render_pass_ = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> frame_buffers_;
+    VkSubmitInfo submit_info_{};
+    VkPipelineStageFlags submit_pipeline_stages_ = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    
     uint32_t current_buffer_ = 0;
     VkDescriptorPool descriptor_pool_ = VK_NULL_HANDLE;
 
@@ -133,7 +134,7 @@ protected:
     void createInstance();
     void createSwapChain();
     
-    virtual void prepare();
+    virtual void prepareVulkan();
     virtual void createCommandPool();
     virtual void createCommandBuffers();
     virtual void destroyCommandBuffers();
@@ -143,8 +144,11 @@ protected:
     virtual void setupRenderPass();
     virtual void setupFrameBuffer();
     
-    virtual void preparePipeline();
+    virtual void setupPipeline();
     virtual void setupDescriptorSetLayout();
+    
+    virtual void buildCommandBuffer();
+    virtual void draw();
 public:
     struct
     {
