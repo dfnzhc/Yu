@@ -140,7 +140,6 @@ void VulkanSwapChain::connect(VkInstance instance, VkPhysicalDevice physicalDevi
 */
 void VulkanSwapChain::create(uint32_t* width, uint32_t* height, bool vsync)
 {
-    LOG_INFO("\tCreate swap chain...");
     // 存储当前的交换链句柄，以便之后用它来进行重建交换链
     VkSwapchainKHR oldSwapchain = swapChain;
 

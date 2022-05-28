@@ -27,6 +27,7 @@ void AppBase::setup()
 
     initVulkan();
     prepareVulkan();
+    LOG_INFO("Successfully setup Vulkan, ready to render.")
 
     camera_.perspectiveInit(60.0, static_cast<float>(width_) / static_cast<float>(height_), 0.1f, 1000.0f);
 }
@@ -35,9 +36,11 @@ void AppBase::update(float delta_time)
 {
     Application::update(delta_time);
 
-    draw();
+    if (prepared) {
+        draw();
 
-    updateUniformBuffers();
+        updateUniformBuffers();
+    }
 }
 
 void AppBase::finish()
@@ -53,7 +56,7 @@ void AppBase::finish()
     vkDestroyDescriptorSetLayout(device_, descriptor_set_layout_, nullptr);
 
     for (auto& module : shader_modules_) {
-        vkDestroyShaderModule(device_, module, nullptr);
+        vkDestroyShaderModule(device_, module.second, nullptr);
     }
 
     for (auto& frameBuffer : frame_buffers_) {
@@ -92,7 +95,39 @@ void AppBase::finish()
 
 bool AppBase::resize(const uint32_t width, const uint32_t height)
 {
+    LOG_INFO("Window size changed, rebuild some Vulkan infrastructures...")
+    prepared = false;
+    start_tracking_ = false;
 
+    vkDeviceWaitIdle(device_);
+
+    // 重新创建交换链
+    width_ = width;
+    height_ = height;
+    createSwapChain();
+
+    // 重新创建帧缓冲区
+    vkDestroyImageView(device_, depthStencil.view, nullptr);
+    vkDestroyImage(device_, depthStencil.image, nullptr);
+    vkFreeMemory(device_, depthStencil.mem, nullptr);
+
+    createDepthStencilView();
+    for (auto& frameBuffer : frame_buffers_) {
+        vkDestroyFramebuffer(device_, frameBuffer, nullptr);
+    }
+    setupFrameBuffer();
+
+    destroyCommandBuffers();
+    createCommandBuffers();
+    buildCommandBuffers();
+
+    vkDeviceWaitIdle(device_);
+
+    if ((width > 0.0f) && (height > 0.0f)) {
+        camera_.updateAspectRatio((float) width / (float) height);
+    }
+
+    prepared = true;
     return true;
 }
 
@@ -197,7 +232,11 @@ void AppBase::initVulkan()
 
     // 向交换链设置相关的属性
     swap_chain_.connect(instance_, physical_device_, device_);
+    auto window = static_cast<GLFW_Window*>(platform_->getWindow());
+    swap_chain_.initSurface(window->getGlfwWindowHandle());
 
+    width_ = window->getExtent().width;
+    height_ = window->getExtent().height;
 }
 
 void AppBase::createInstance()
@@ -286,23 +325,49 @@ void AppBase::prepareVulkan()
 {
     LOG_INFO("Prepare vulkan infrastructures..")
 
+    LOG_INFO("\tCreate swap chain...");
     createSwapChain();
 
+    LOG_INFO("\tCreate command pool...");
     createCommandPool();
+    
+    LOG_INFO("\tCreate command buffers...");
     createCommandBuffers();
+    
+    LOG_INFO("\tCreate synchronization...");
     createSynchronizationPrimitives();
+    
+    LOG_INFO("\tCreate depth and stencil view...");
     createDepthStencilView();
+
+    LOG_INFO("\tCreate render pass...");
     setupRenderPass();
+
+    LOG_INFO("\tCreate framebuffer...");
     setupFrameBuffer();
 
+    LOG_INFO("\tCreate uniform buffer...");
     setupUniformBuffers();
+    
+    LOG_INFO("\tCreate descriptor set layout...");
     setupDescriptorSetLayout();
+
+    LOG_INFO("\tCreate pipeline cache...");
     createPipelineCache();
+
+    LOG_INFO("\tcreate pipeline...");
     setupPipeline();
 
+    LOG_INFO("\tCreate descriptor pool...");
     setupDescriptorPool();
+    
+    LOG_INFO("\tCreate descriptor set...");
     setupDescriptorSet();
-    buildCommandBuffer();
+
+    LOG_INFO("\tBuild command buffer...");
+    buildCommandBuffers();
+
+    prepared = true;
 }
 
 /**
@@ -310,18 +375,11 @@ void AppBase::prepareVulkan()
  */
 void AppBase::createSwapChain()
 {
-    auto window = static_cast<GLFW_Window*>(platform_->getWindow());
-
-    swap_chain_.initSurface(window->getGlfwWindowHandle());
-
-    width_ = window->getExtent().width;
-    height_ = window->getExtent().height;
     swap_chain_.create(&width_, &height_, settings_.vsync);
 }
 
 void AppBase::setupRenderPass()
 {
-    LOG_INFO("\tCreate render pass...");
     std::array<VkAttachmentDescription, 2> attachments = {};
     // Color attachment
     attachments[0].format = swap_chain_.colorFormat;
@@ -394,7 +452,6 @@ void AppBase::setupRenderPass()
 
 void AppBase::createCommandPool()
 {
-    LOG_INFO("\tCreate command pool...");
     VkCommandPoolCreateInfo cmdPoolInfo = {};
     cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     cmdPoolInfo.queueFamilyIndex = swap_chain_.queueNodeIndex;
@@ -404,7 +461,6 @@ void AppBase::createCommandPool()
 
 void AppBase::createCommandBuffers()
 {
-    LOG_INFO("\tCreate command buffers...");
     // 为每个交换链图像创建一个命令缓冲区，并重复使用以进行渲染
     drawCmdBuffers.resize(swap_chain_.imageCount);
 
@@ -424,7 +480,6 @@ void AppBase::destroyCommandBuffers()
 
 void AppBase::createSynchronizationPrimitives()
 {
-    LOG_INFO("\tCreate synchronization...");
 
     // 创建同步对象
     VkSemaphoreCreateInfo semaphoreCreateInfo = ST::VK::semaphoreCreateInfo();
@@ -456,7 +511,6 @@ void AppBase::createSynchronizationPrimitives()
 
 void AppBase::createDepthStencilView()
 {
-    LOG_INFO("\tCreate depth and stencil view...");
     VkImageCreateInfo imageCI{};
     imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCI.imageType = VK_IMAGE_TYPE_2D;
@@ -499,7 +553,6 @@ void AppBase::createDepthStencilView()
 
 void AppBase::createPipelineCache()
 {
-    LOG_INFO("\tCreate pipeline cache...");
     VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
     pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
     VK_CHECK(vkCreatePipelineCache(device_, &pipelineCacheCreateInfo, nullptr, &pipeline_cache_));
@@ -507,7 +560,6 @@ void AppBase::createPipelineCache()
 
 void AppBase::setupFrameBuffer()
 {
-    LOG_INFO("\tCreate framebuffer...");
     VkImageView attachments[2];
 
     // 深度/模板的 attachment 对所有帧缓冲区都是一样的
@@ -533,7 +585,6 @@ void AppBase::setupFrameBuffer()
 
 void AppBase::setupPipeline()
 {
-    LOG_INFO("\tcreate pipeline...");
     auto pipelineCI = ST::VK::pipelineCreateInfo();
 
     LOG_INFO("\t\tSet shader modules..");
@@ -600,7 +651,12 @@ void AppBase::setupPipeline()
     depthStencilState.front = depthStencilState.back;
 
     LOG_INFO("\t\tSet pipeline dynamic state...");
+    std::vector<VkDynamicState> dynamicStateEnables;
+    dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+    dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
     auto dynamicState = ST::VK::pipelineDynamicStateCreateInfo();
+    dynamicState.pDynamicStates = dynamicStateEnables.data();
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
 
     pipelineCI.stageCount = static_cast<uint32_t>(shaderStages.size());
     pipelineCI.pStages = shaderStages.data();
@@ -704,19 +760,26 @@ void AppBase::setupDescriptorSet()
 
 VkPipelineShaderStageCreateInfo AppBase::loadShader(std::string_view fileName)
 {
+    VkShaderModule shaderModule{};
+    auto sd = shader_modules_.find(fileName.data());
+    if (sd != shader_modules_.end()) {
+        shaderModule = sd->second;
+    } else {
+        shaderModule = LoadShader(ST::GetSpvShaderFile(fileName.data()), device_);
+        shader_modules_.insert({fileName.data(), shaderModule});
+    }
+
     auto shaderStage = ST::VK::pipelineShaderStageCreateInfo();
     shaderStage.stage = GetShaderType(fileName);
-    shaderStage.module = LoadShader(ST::GetSpvShaderFile(fileName.data()), device_);
+    shaderStage.module = shaderModule;
     assert(shaderStage.module != VK_NULL_HANDLE);
     shaderStage.pName = "main";
 
-    shader_modules_.push_back(shaderStage.module);
     return shaderStage;
 }
 
-void AppBase::buildCommandBuffer()
+void AppBase::buildCommandBuffers()
 {
-    LOG_INFO("\tBuild command buffer...");
     auto cmdBeginInfo = ST::VK::commandBufferBeginInfo();
 
     VkClearValue clearValues[2];
@@ -737,6 +800,22 @@ void AppBase::buildCommandBuffer()
         VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &cmdBeginInfo));
 
         vkCmdBeginRenderPass(cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        // 动态更新视口
+        VkViewport viewport = {};
+        viewport.width = (float) width_;
+        viewport.height = (float) height_;
+        viewport.minDepth = (float) 0.0f;
+        viewport.maxDepth = (float) 1.0f;
+        vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+
+        // 动态更新裁剪矩形
+        VkRect2D scissor = {};
+        scissor.extent.width = width_;
+        scissor.extent.height = height_;
+        scissor.offset.x = 0;
+        scissor.offset.y = 0;
+        vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
         // 绑定描述符集，描述着色器的绑定点
         vkCmdBindDescriptorSets(

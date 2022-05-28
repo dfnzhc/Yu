@@ -103,7 +103,7 @@ protected:
     /// 流水线相关------------------------------------------------------------------
     // 着色器模组
     VkPipelineCache pipeline_cache_;
-    std::vector<VkShaderModule> shader_modules_;
+    std::unordered_map<std::string, VkShaderModule> shader_modules_;
     VkPipelineLayout pipeline_layout_;
     VkPipeline pipeline_;
     VkDescriptorSetLayout descriptor_set_layout_;
@@ -157,8 +157,10 @@ protected:
     virtual void setupDescriptorPool();
     virtual void setupDescriptorSet();
 
-    virtual void buildCommandBuffer();
+    virtual void buildCommandBuffers();
     virtual void draw();
+
+//    virtual void cleanupSwapChain();
 public:
     struct
     {
@@ -174,7 +176,7 @@ public:
     bool start_tracking_ = false;
     float xPos_, yPos_;
     
-    
+    bool prepared = false;
     uint32_t width_ = 1280;
     uint32_t height_ = 720;
 
