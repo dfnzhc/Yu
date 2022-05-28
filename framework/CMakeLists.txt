@@ -10,7 +10,7 @@ set(COMMON_FILES
         # header files
         pch.hpp
 
-        common/common.hpp)
+        common/common.hpp common/camera.hpp)
 
 set(RHI_VULKAN_FILES
         # header files

@@ -11,7 +11,7 @@ namespace ST::VK {
 /**
 * @brief 对备份设备内存的缓冲区的访问进行封装
 */
-struct Buffer
+struct VulkanBuffer
 {
     VkDevice device;
     VkBuffer buffer = VK_NULL_HANDLE;

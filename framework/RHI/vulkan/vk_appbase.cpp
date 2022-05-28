@@ -27,6 +27,8 @@ void AppBase::setup()
 
     initVulkan();
     prepareVulkan();
+
+    camera_.perspectiveInit(60.0, static_cast<float>(width_) / static_cast<float>(height_), 0.1f, 1000.0f);
 }
 
 void AppBase::update(float delta_time)
@@ -34,14 +36,21 @@ void AppBase::update(float delta_time)
     Application::update(delta_time);
 
     draw();
+
+    updateUniformBuffers();
 }
 
 void AppBase::finish()
 {
     vkDeviceWaitIdle(device_);
 
+    uniform_buffer_.destroy();
+
+    vkDestroyDescriptorPool(device_, descriptor_pool_, nullptr);
+
     vkDestroyPipeline(device_, pipeline_, nullptr);
     vkDestroyPipelineLayout(device_, pipeline_layout_, nullptr);
+    vkDestroyDescriptorSetLayout(device_, descriptor_set_layout_, nullptr);
 
     for (auto& module : shader_modules_) {
         vkDestroyShaderModule(device_, module, nullptr);
@@ -90,6 +99,36 @@ bool AppBase::resize(const uint32_t width, const uint32_t height)
 void AppBase::input_event(const InputEvent& input_event)
 {
     Application::input_event(input_event);
+
+    if (input_event.type == EventType::Keyboard) {
+        [[maybe_unused]]
+        const auto& key_event = static_cast<const KeyInputEvent&>(input_event);
+
+//        LOG_INFO("[Keyboard] key: {}, action: {}", static_cast<int>(key_event.code), GetActionString(key_event.action));
+    } else if (input_event.type == EventType::Mouse) {
+        [[maybe_unused]]
+        const auto& mouse_event = static_cast<const MouseInputEvent&>(input_event);
+
+        if (!start_tracking_) {
+            start_tracking_ = true;
+            xPos_ = mouse_event.pos_x;
+            yPos_ = mouse_event.pos_y;
+        } else {
+            float dx = mouse_event.pos_x - xPos_;
+            float dy = mouse_event.pos_y - yPos_;
+            xPos_ = mouse_event.pos_x;
+            yPos_ = mouse_event.pos_y;
+
+            if (mouse_event.isEvent(Yuan::MouseButton::Left, Yuan::MouseAction::PressedMove)) {
+                camera_.update(dx, dy);
+            }
+        }
+
+//        LOG_INFO("[Mouse] key: {}, action: {} ({}.{} {})",
+//                 GetButtonString(mouse_event.button),
+//                 GetActionString(mouse_event.action), mouse_event.pos_x, mouse_event.pos_y, mouse_event.scroll_dir);
+    }
+
 }
 
 /**
@@ -256,8 +295,13 @@ void AppBase::prepareVulkan()
     setupRenderPass();
     setupFrameBuffer();
 
+    setupUniformBuffers();
+    setupDescriptorSetLayout();
     createPipelineCache();
     setupPipeline();
+
+    setupDescriptorPool();
+    setupDescriptorSet();
     buildCommandBuffer();
 }
 
@@ -558,9 +602,6 @@ void AppBase::setupPipeline()
     LOG_INFO("\t\tSet pipeline dynamic state...");
     auto dynamicState = ST::VK::pipelineDynamicStateCreateInfo();
 
-    LOG_INFO("\t\tSet pipeline layout...");
-    setupDescriptorSetLayout();
-
     pipelineCI.stageCount = static_cast<uint32_t>(shaderStages.size());
     pipelineCI.pStages = shaderStages.data();
     pipelineCI.pVertexInputState = &vertexInputState;
@@ -579,13 +620,86 @@ void AppBase::setupPipeline()
     VK_CHECK(vkCreateGraphicsPipelines(device_, pipeline_cache_, 1, &pipelineCI, nullptr, &pipeline_));
 }
 
+void AppBase::setupUniformBuffers()
+{
+    VK_CHECK(vulkan_device_->createBuffer(
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &uniform_buffer_,
+        2 * sizeof(glm::mat4)));
+
+    updateUniformBuffers();
+}
+
+void AppBase::updateUniformBuffers()
+{
+    std::vector uniformData(2, glm::mat4{});
+    uniformData[0] = camera_.matrices.view;
+    uniformData[1] = camera_.matrices.perspective;
+
+    VK_CHECK(uniform_buffer_.map());
+    uniform_buffer_.copyTo(uniformData.data(), 2 * sizeof(glm::mat4));
+    uniform_buffer_.unmap();
+}
+
 void AppBase::setupDescriptorSetLayout()
 {
+    // Binding 0: Uniform buffer (Vertex shader)
+    auto layoutBinding = ST::VK::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0);
+    auto descriptorLayout = ST::VK::descriptorSetLayoutCreateInfo(&layoutBinding, 1);
+    VK_CHECK(vkCreateDescriptorSetLayout(device_, &descriptorLayout, nullptr, &descriptor_set_layout_));
+
     auto pPipelineLayoutCreateInfo = ST::VK::pipelineLayoutCreateInfo(nullptr, 0);
     pPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pPipelineLayoutCreateInfo.pNext = nullptr;
+    pPipelineLayoutCreateInfo.setLayoutCount = 1;
+    pPipelineLayoutCreateInfo.pSetLayouts = &descriptor_set_layout_;
 
     VK_CHECK(vkCreatePipelineLayout(device_, &pPipelineLayoutCreateInfo, nullptr, &pipeline_layout_));
+}
+
+void AppBase::setupDescriptorPool()
+{
+    // 需要告知每种类型请求的描述符信息
+    VkDescriptorPoolSize typeCounts[1];
+    typeCounts[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    typeCounts[0].descriptorCount = 1;
+
+    // 创建全局的描述符池
+    VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
+    descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    descriptorPoolInfo.pNext = nullptr;
+    descriptorPoolInfo.poolSizeCount = 1;
+    descriptorPoolInfo.pPoolSizes = typeCounts;
+    descriptorPoolInfo.maxSets = 1;
+
+    VK_CHECK(vkCreateDescriptorPool(device_, &descriptorPoolInfo, nullptr, &descriptor_pool_));
+}
+
+void AppBase::setupDescriptorSet()
+{
+    // 从全局描述符池中分配一个新的描述符集
+    VkDescriptorSetAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptor_pool_;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &descriptor_set_layout_;
+    VK_CHECK(vkAllocateDescriptorSets(device_, &allocInfo, &descriptor_set_));
+
+    // 更新决定着色器绑定点的描述符集
+    // 对于着色器中使用的每个绑定点，都需要有一个描述符集与该绑定点相匹配
+
+    VkWriteDescriptorSet writeDescriptorSet = {};
+    // Binding 0 : Uniform buffer
+    writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeDescriptorSet.dstSet = descriptor_set_;
+    writeDescriptorSet.descriptorCount = 1;
+    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    writeDescriptorSet.pBufferInfo = &uniform_buffer_.descriptor;
+    // 将此 uniform 缓冲区绑定到绑定点0上
+    writeDescriptorSet.dstBinding = 0;
+
+    vkUpdateDescriptorSets(device_, 1, &writeDescriptorSet, 0, nullptr);
 }
 
 VkPipelineShaderStageCreateInfo AppBase::loadShader(std::string_view fileName)
@@ -623,6 +737,18 @@ void AppBase::buildCommandBuffer()
         VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &cmdBeginInfo));
 
         vkCmdBeginRenderPass(cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        // 绑定描述符集，描述着色器的绑定点
+        vkCmdBindDescriptorSets(
+            cmdBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipeline_layout_,
+            0,
+            1,
+            &descriptor_set_,
+            0,
+            nullptr);
+
         vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
         vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
         vkCmdEndRenderPass(cmdBuffer);

@@ -328,7 +328,7 @@ VkResult VulkanDevice::createBuffer(VkBufferUsageFlags usageFlags,
 */
 VkResult VulkanDevice::createBuffer(VkBufferUsageFlags usageFlags,
                                     VkMemoryPropertyFlags memoryPropertyFlags,
-                                    Buffer* buffer,
+                                    VulkanBuffer* buffer,
                                     VkDeviceSize size,
                                     void* data)
 {
@@ -386,7 +386,7 @@ VkResult VulkanDevice::createBuffer(VkBufferUsageFlags usageFlags,
 *
 * @note 源和目的指针必须设置适当的传输使用标志 (TRANSFER_SRC / TRANSFER_DST)
 */
-void VulkanDevice::copyBuffer(Buffer* src, Buffer* dst, VkQueue queue, VkBufferCopy* copyRegion)
+void VulkanDevice::copyBuffer(VulkanBuffer* src, VulkanBuffer* dst, VkQueue queue, VkBufferCopy* copyRegion)
 {
     assert(dst->size <= src->size);
     assert(src->buffer);

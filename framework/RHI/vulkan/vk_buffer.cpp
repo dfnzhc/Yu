@@ -13,7 +13,7 @@ namespace ST::VK {
 * 
 * @return VkResult of the buffer mapping call
 */
-VkResult Buffer::map(VkDeviceSize size, VkDeviceSize offset)
+VkResult VulkanBuffer::map(VkDeviceSize size, VkDeviceSize offset)
 {
     return vkMapMemory(device, memory, offset, size, 0, &mapped);
 }
@@ -22,7 +22,7 @@ VkResult Buffer::map(VkDeviceSize size, VkDeviceSize offset)
 *
 * @note 不返回结果，因为vkUnmapMemory不会失败
 */
-void Buffer::unmap()
+void VulkanBuffer::unmap()
 {
     if (mapped) {
         vkUnmapMemory(device, memory);
@@ -37,7 +37,7 @@ void Buffer::unmap()
 * 
 * @return VkResult of the bindBufferMemory call
 */
-VkResult Buffer::bind(VkDeviceSize offset)
+VkResult VulkanBuffer::bind(VkDeviceSize offset)
 {
     return vkBindBufferMemory(device, buffer, memory, offset);
 }
@@ -49,7 +49,7 @@ VkResult Buffer::bind(VkDeviceSize offset)
 * @param offset (可选) 从头开始的字节偏移量
 *
 */
-void Buffer::setupDescriptor(VkDeviceSize size, VkDeviceSize offset)
+void VulkanBuffer::setupDescriptor(VkDeviceSize size, VkDeviceSize offset)
 {
     descriptor.offset = offset;
     descriptor.buffer = buffer;
@@ -63,7 +63,7 @@ void Buffer::setupDescriptor(VkDeviceSize size, VkDeviceSize offset)
 * @param size 要复制的数据的大小，以机器单位计算
 *
 */
-void Buffer::copyTo(void* data, VkDeviceSize size)
+void VulkanBuffer::copyTo(void* data, VkDeviceSize size)
 {
     assert(mapped);
     memcpy(mapped, data, size);
@@ -79,7 +79,7 @@ void Buffer::copyTo(void* data, VkDeviceSize size)
 *
 * @return VkResult of the flush call
 */
-VkResult Buffer::flush(VkDeviceSize size, VkDeviceSize offset)
+VkResult VulkanBuffer::flush(VkDeviceSize size, VkDeviceSize offset)
 {
     VkMappedMemoryRange mappedRange = {};
     mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
@@ -99,7 +99,7 @@ VkResult Buffer::flush(VkDeviceSize size, VkDeviceSize offset)
 *
 * @return VkResult of the invalidate call
 */
-VkResult Buffer::invalidate(VkDeviceSize size, VkDeviceSize offset)
+VkResult VulkanBuffer::invalidate(VkDeviceSize size, VkDeviceSize offset)
 {
     VkMappedMemoryRange mappedRange = {};
     mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
@@ -112,7 +112,7 @@ VkResult Buffer::invalidate(VkDeviceSize size, VkDeviceSize offset)
 /** 
 * 释放该缓冲区持有的所有Vulkan资源
 */
-void Buffer::destroy()
+void VulkanBuffer::destroy()
 {
     if (buffer) {
         vkDestroyBuffer(device, buffer, nullptr);
