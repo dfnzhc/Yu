@@ -4,6 +4,7 @@
 
 #include "vk_utils.hpp"
 #include "vk_error.hpp"
+#include "vk_initializers.hpp"
 
 #include <vulkan/vulkan.hpp>
 
@@ -177,7 +178,7 @@ VkShaderStageFlagBits GetShaderType(std::string_view fileName)
     } else if (ext == "rcall") {
         return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
     }
-    
+
     throw std::runtime_error("No proper shader type.");
 }
 
@@ -210,6 +211,174 @@ VkShaderModule LoadShader(std::string_view fileName, VkDevice device)
     VK_CHECK(vkCreateShaderModule(device, &moduleCreateInfo, nullptr, &shaderModule));
 
     return shaderModule;
+}
+
+// 创建一个图像内存屏障，用于改变图像的布局，并将其放入一个活动的命令缓冲区
+void SetImageLayout(
+    VkCommandBuffer cmdbuffer,
+    VkImage image,
+    VkImageLayout oldImageLayout,
+    VkImageLayout newImageLayout,
+    VkImageSubresourceRange subresourceRange,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask)
+{
+    // Create an image barrier object
+    VkImageMemoryBarrier imageMemoryBarrier = ST::VK::imageMemoryBarrier();
+    imageMemoryBarrier.oldLayout = oldImageLayout;
+    imageMemoryBarrier.newLayout = newImageLayout;
+    imageMemoryBarrier.image = image;
+    imageMemoryBarrier.subresourceRange = subresourceRange;
+
+    // Source layouts (old)
+    // 源访问掩码控制在旧布局上必须完成的动作，然后才会过渡到新布局上
+    switch (oldImageLayout) {
+        case VK_IMAGE_LAYOUT_UNDEFINED:
+            // 图像布局是未定义的（或不重要）
+            // 只在初始布局时有效
+            // 不需要标志，只是为了完整地列出
+            imageMemoryBarrier.srcAccessMask = 0;
+            break;
+
+        case VK_IMAGE_LAYOUT_PREINITIALIZED:
+            // 图像已被预初始化
+            // 只对线性图像的初始布局有效，保留了内存内容
+            // 确保主机写入已经完成
+            imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+            // 图像是一个颜色附件
+            // 确保对颜色缓冲区的任何写操作都已完成
+            imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+            // 图像是一个深度/模板附件
+            // 确保对深度/模板缓冲区的任何写入都已完成
+            imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+            // 图像是一个传输源
+            // 确保从图像中的任何读取都已完成
+            imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+            // 图像是一个传输目的地
+            // 确保对图像的任何写操作都已完成
+            imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+            // 图像被一个着色器读取
+            // 确保所有从图像中读取的着色器都已完成
+            imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            break;
+        default:
+            // Other source layouts aren't handled (yet)
+            break;
+    }
+
+    // 目标布局（新）
+    // 目标访问掩码控制新图像布局的依赖性
+    switch (newImageLayout) {
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+            // 图像将被用作传输目的地
+            // 确保对图像的任何写入都已完成
+            imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+            // 图像将被用作传输源
+            // 确保从图像中的任何读取都已完成
+            imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+            // 图像将被用作颜色附件
+            // 确保对颜色缓冲区的任何写入都已完成
+            imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+            // 图像布局将被用作深度/模板附件
+            // 确保对深度/模板缓冲区的任何写入都已完成
+            imageMemoryBarrier.dstAccessMask = imageMemoryBarrier.dstAccessMask | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+            // 图像将在着色器中被读取（采样器，输入附件）
+            // 确保对图像的任何写入都已完成
+            if (imageMemoryBarrier.srcAccessMask == 0) {
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+            }
+            imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            break;
+        default:
+            // Other source layouts aren't handled (yet)
+            break;
+    }
+
+    // 将 barrier 放到命令缓冲区内
+    vkCmdPipelineBarrier(
+        cmdbuffer,
+        srcStageMask,
+        dstStageMask,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &imageMemoryBarrier);
+}
+
+// Uses a fixed sub resource layout with first mip level and layer
+void SetImageLayout(
+    VkCommandBuffer cmdbuffer,
+    VkImage image,
+    VkImageAspectFlags aspectMask,
+    VkImageLayout oldImageLayout,
+    VkImageLayout newImageLayout,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask)
+{
+    VkImageSubresourceRange subresourceRange = {};
+    subresourceRange.aspectMask = aspectMask;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.layerCount = 1;
+    SetImageLayout(cmdbuffer, image, oldImageLayout, newImageLayout, subresourceRange, srcStageMask, dstStageMask);
+
+}
+
+/** @brief 在命令缓冲区中插入一个图像内存屏障 */
+void InsertImageMemoryBarrier(
+    VkCommandBuffer cmdbuffer,
+    VkImage image,
+    VkAccessFlags srcAccessMask,
+    VkAccessFlags dstAccessMask,
+    VkImageLayout oldImageLayout,
+    VkImageLayout newImageLayout,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask,
+    VkImageSubresourceRange subresourceRange)
+{
+    VkImageMemoryBarrier imageMemoryBarrier = ST::VK::imageMemoryBarrier();
+    imageMemoryBarrier.srcAccessMask = srcAccessMask;
+    imageMemoryBarrier.dstAccessMask = dstAccessMask;
+    imageMemoryBarrier.oldLayout = oldImageLayout;
+    imageMemoryBarrier.newLayout = newImageLayout;
+    imageMemoryBarrier.image = image;
+    imageMemoryBarrier.subresourceRange = subresourceRange;
+
+    vkCmdPipelineBarrier(
+        cmdbuffer,
+        srcStageMask,
+        dstStageMask,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &imageMemoryBarrier);
 }
 
 } // namespace ST::VK

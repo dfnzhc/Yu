@@ -9,6 +9,7 @@
 #include "vk_initializers.hpp"
 #include <vulkan/vulkan_win32.h>
 #include <glfw_window.hpp>
+#include <imgui.h>
 
 namespace ST::VK {
 
@@ -26,10 +27,22 @@ void AppBase::setup()
     Application::setup();
 
     initVulkan();
+
     prepareVulkan();
     LOG_INFO("Successfully setup Vulkan, ready to render.")
 
     camera_.perspectiveInit(60.0, static_cast<float>(width_) / static_cast<float>(height_), 0.1f, 1000.0f);
+
+    if (settings_.overlay) {
+        ui_overlay_.device = vulkan_device_;
+        ui_overlay_.queue = queue_;
+        ui_overlay_.shaders = {
+            loadShader("uioverlay.vert"),
+            loadShader("uioverlay.frag"),
+        };
+        ui_overlay_.prepareResources();
+        ui_overlay_.preparePipeline(pipeline_cache_, render_pass_);
+    }
 }
 
 void AppBase::update(float delta_time)
@@ -38,6 +51,7 @@ void AppBase::update(float delta_time)
 
     if (prepared) {
         draw();
+        updateOverlay();
 
         updateUniformBuffers();
     }
@@ -84,6 +98,10 @@ void AppBase::finish()
 
     swap_chain_.cleanup();
 
+    if (settings_.overlay) {
+        ui_overlay_.freeResources();
+    }
+
     delete vulkan_device_;
 
     if (settings_.validation) {
@@ -117,15 +135,19 @@ bool AppBase::resize(const uint32_t width, const uint32_t height)
     }
     setupFrameBuffer();
 
+    if ((width > 0) && (height > 0)) {
+        camera_.updateAspectRatio((float) width / (float) height);
+
+        if (settings_.overlay) {
+            ui_overlay_.resize(width, height);
+        }
+    }
+    
     destroyCommandBuffers();
     createCommandBuffers();
     buildCommandBuffers();
 
     vkDeviceWaitIdle(device_);
-
-    if ((width > 0.0f) && (height > 0.0f)) {
-        camera_.updateAspectRatio((float) width / (float) height);
-    }
 
     prepared = true;
     return true;
@@ -138,6 +160,10 @@ void AppBase::input_event(const InputEvent& input_event)
     if (input_event.type == EventType::Keyboard) {
         [[maybe_unused]]
         const auto& key_event = static_cast<const KeyInputEvent&>(input_event);
+
+        if (key_event.isEvent(Yuan::KeyCode::F1, KeyAction::Press)) {
+            settings_.overlay = !settings_.overlay;
+        }
 
 //        LOG_INFO("[Keyboard] key: {}, action: {}", static_cast<int>(key_event.code), GetActionString(key_event.action));
     } else if (input_event.type == EventType::Mouse) {
@@ -157,6 +183,12 @@ void AppBase::input_event(const InputEvent& input_event)
             if (mouse_event.isEvent(Yuan::MouseButton::Left, Yuan::MouseAction::PressedMove)) {
                 camera_.update(dx, dy);
             }
+
+            // 更新 Imgui 鼠标
+            ImGuiIO& io = ImGui::GetIO();
+            io.MousePos = ImVec2(xPos_, yPos_);
+            io.MouseDown[0] = mouse_event.isEvent(Yuan::MouseButton::Left, Yuan::MouseAction::Press);
+            io.MouseDown[1] = mouse_event.isEvent(Yuan::MouseButton::Right, Yuan::MouseAction::Press);
         }
 
 //        LOG_INFO("[Mouse] key: {}, action: {} ({}.{} {})",
@@ -330,13 +362,13 @@ void AppBase::prepareVulkan()
 
     LOG_INFO("\tCreate command pool...");
     createCommandPool();
-    
+
     LOG_INFO("\tCreate command buffers...");
     createCommandBuffers();
-    
+
     LOG_INFO("\tCreate synchronization...");
     createSynchronizationPrimitives();
-    
+
     LOG_INFO("\tCreate depth and stencil view...");
     createDepthStencilView();
 
@@ -348,7 +380,7 @@ void AppBase::prepareVulkan()
 
     LOG_INFO("\tCreate uniform buffer...");
     setupUniformBuffers();
-    
+
     LOG_INFO("\tCreate descriptor set layout...");
     setupDescriptorSetLayout();
 
@@ -360,7 +392,7 @@ void AppBase::prepareVulkan()
 
     LOG_INFO("\tCreate descriptor pool...");
     setupDescriptorPool();
-    
+
     LOG_INFO("\tCreate descriptor set...");
     setupDescriptorSet();
 
@@ -793,28 +825,20 @@ void AppBase::buildCommandBuffers()
     renderPassBeginInfo.clearValueCount = 2;
     renderPassBeginInfo.pClearValues = clearValues;
 
+    const VkViewport viewport = ST::VK::viewport((float) width_, (float) height_, 0.0f, 1.0f);
+    const VkRect2D scissor = ST::VK::rect2D(width_, height_, 0, 0);
+
     for (auto i = 0; i < drawCmdBuffers.size(); ++i) {
         renderPassBeginInfo.framebuffer = frame_buffers_[i];
 
         auto cmdBuffer = drawCmdBuffers[i];
         VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &cmdBeginInfo));
-
         vkCmdBeginRenderPass(cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         // 动态更新视口
-        VkViewport viewport = {};
-        viewport.width = (float) width_;
-        viewport.height = (float) height_;
-        viewport.minDepth = (float) 0.0f;
-        viewport.maxDepth = (float) 1.0f;
         vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
         // 动态更新裁剪矩形
-        VkRect2D scissor = {};
-        scissor.extent.width = width_;
-        scissor.extent.height = height_;
-        scissor.offset.x = 0;
-        scissor.offset.y = 0;
         vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
         // 绑定描述符集，描述着色器的绑定点
@@ -830,6 +854,7 @@ void AppBase::buildCommandBuffers()
 
         vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
         vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
+        drawUI(cmdBuffer);
         vkCmdEndRenderPass(cmdBuffer);
 
         VK_CHECK(vkEndCommandBuffer(cmdBuffer));
@@ -858,6 +883,47 @@ void AppBase::draw()
     VkResult present = swap_chain_.queuePresent(queue_, current_buffer_, semaphores_.renderComplete);
     if (!((present == VK_SUCCESS) || (present == VK_SUBOPTIMAL_KHR))) {
         VK_CHECK(present);
+    }
+}
+
+void AppBase::drawUI(const VkCommandBuffer commandBuffer)
+{
+    if (settings_.overlay) {
+        const VkViewport viewport = ST::VK::viewport((float) width_, (float) height_, 0.0f, 1.0f);
+        const VkRect2D scissor = ST::VK::rect2D(width_, height_, 0, 0);
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+        ui_overlay_.draw(commandBuffer);
+    }
+}
+
+void AppBase::updateOverlay()
+{
+    if (!settings_.overlay)
+        return;
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2((float) width_, (float) height_);
+    io.DeltaTime = 1.0f / 30.0f; //frameTimer;
+
+    ImGui::NewFrame();
+
+    ImGui::Begin("Hello", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::TextUnformatted(name_.c_str());
+    ImGui::TextUnformatted(device_properties_.deviceName);
+//    updateUIOverlay(&ui_overlay_);
+    if (ui_overlay_.header("Test")) {
+
+        ImGui::NewLine();
+    }
+    ImGui::End();
+
+    ImGui::Render();
+
+    if (ui_overlay_.update() || ui_overlay_.updated) {
+        buildCommandBuffers();
+        ui_overlay_.updated = false;
     }
 }
 

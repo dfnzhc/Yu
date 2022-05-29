@@ -16,13 +16,9 @@ add_library(glm INTERFACE)
 target_link_libraries(glm INTERFACE glm::glm)
 set_target_properties(glm PROPERTIES FOLDER "ThirdParty")
 
-## vma 
-#find_package(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
-#add_library(vma INTERFACE)
-#target_link_libraries(vma INTERFACE unofficial::vulkan-memory-allocator::vulkan-memory-allocator)
-#set_target_properties(vma PROPERTIES FOLDER "ThirdParty")
-#
-## volk
-#find_package(volk CONFIG REQUIRED)
-#add_library(volk INTERFACE)
-#target_link_libraries(volk INTERFACE volk::volk)
+# imgui [docking]
+
+find_package(imgui CONFIG REQUIRED)
+add_library(imgui INTERFACE)
+target_link_libraries(imgui INTERFACE imgui::imgui)
+set_target_properties(imgui PROPERTIES FOLDER "ThirdParty")

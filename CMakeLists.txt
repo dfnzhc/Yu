@@ -19,6 +19,7 @@ compile_glsl_directory(
         DST "${CMAKE_CURRENT_SOURCE_DIR}/data/shaders/spv"
         VULKAN_TARGET "vulkan1.3"
 )
+
 add_custom_target(
         Shaders
         DEPENDS ${SPV_OUTPUT}

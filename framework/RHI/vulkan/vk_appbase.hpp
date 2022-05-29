@@ -9,6 +9,7 @@
 #include "vk_device.hpp"
 #include "vk_swapchain.hpp"
 #include "common/camera.hpp"
+#include "vk_UIOverlay.hpp"
 
 namespace ST::VK {
 
@@ -88,6 +89,8 @@ protected:
     VkDevice device_{};
     VkQueue queue_{};
 
+    VulkanDevice* vulkan_device_ = nullptr;
+
     /// surface 和交换链相关---------------------------------------------------------
     VulkanSwapChain swap_chain_;
 
@@ -160,27 +163,35 @@ protected:
     virtual void buildCommandBuffers();
     virtual void draw();
 
-//    virtual void cleanupSwapChain();
+    //--------------------------------------------------------------------------------------------------
+    // 用于程序的附加功能
+    //--------------------------------------------------------------------------------------------------
+    Camera camera_;
+    bool start_tracking_ = false;
+    float xPos_, yPos_;
+
+    bool prepared = false;
+    uint32_t width_ = 1280;
+    uint32_t height_ = 720;
+
+    VulkanUIOverlay ui_overlay_{};
+
+    void drawUI(const VkCommandBuffer commandBuffer);
+    void updateOverlay();
+    virtual void updateUIOverlay(VulkanUIOverlay* overlay) {}
+
 public:
     struct
     {
 #ifdef NDEBUG
         bool validation = false;
 #else
-        bool validation = true;
+        bool validation = false;
 #endif
         bool vsync = false;
+        bool overlay = true;
     } settings_;
 
-    Camera camera_;
-    bool start_tracking_ = false;
-    float xPos_, yPos_;
-    
-    bool prepared = false;
-    uint32_t width_ = 1280;
-    uint32_t height_ = 720;
-
-    VulkanDevice* vulkan_device_ = nullptr;
 public:
     VkPipelineShaderStageCreateInfo loadShader(std::string_view fileName);
 
