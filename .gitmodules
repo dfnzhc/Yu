@@ -1,3 +1,0 @@
-[submodule "third_party/yuan"]
-	path = third_party/yuan
-	url = https://github.com/dfnzhc/Yuan.git
