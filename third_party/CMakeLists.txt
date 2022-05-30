@@ -2,6 +2,12 @@
 
 project(third_party LANGUAGES C CXX)
 
+set(SAN_BUILD_TESTS OFF)
+add_subdirectory(San)
+add_library(san INTERFACE)
+target_link_libraries(san INTERFACE San::San)
+target_include_directories(san INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/San/source")
+set_target_properties(san PROPERTIES FOLDER "ThirdParty")
 
 # glm
 find_package(glm CONFIG REQUIRED)
