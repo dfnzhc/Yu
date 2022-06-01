@@ -9,6 +9,28 @@
 
 namespace yu::vk {
 
+inline VkApplicationInfo applicationInfo()
+{
+    VkApplicationInfo appInfo{};
+    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    return appInfo;
+}
+
+inline VkInstanceCreateInfo instanceCreateInfo()
+{
+    VkInstanceCreateInfo instanceInfo{};
+    instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    return instanceInfo;
+}
+
+inline VkValidationFeaturesEXT validationFeatures()
+{
+    VkValidationFeaturesEXT features{};
+    features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+    
+    return features;
+}
+
 inline VkMemoryAllocateInfo memoryAllocateInfo()
 {
     VkMemoryAllocateInfo memAllocInfo{};
@@ -132,7 +154,7 @@ inline VkSemaphoreCreateInfo semaphoreCreateInfo()
     VkSemaphoreCreateInfo semaphoreCreateInfo{};
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreCreateInfo.pNext = nullptr;
-    
+
     return semaphoreCreateInfo;
 }
 
@@ -506,12 +528,11 @@ inline VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo(
     return pipelineViewportStateCreateInfo;
 }
 
-
 inline VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo()
 {
     VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo{};
     pipelineViewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    
+
     return pipelineViewportStateCreateInfo;
 }
 
@@ -527,7 +548,7 @@ inline VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo(
     pipelineMultisampleStateCreateInfo.pSampleMask = nullptr; // Optional
     pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // Optional
     pipelineMultisampleStateCreateInfo.alphaToOneEnable = VK_FALSE; // Optional
-    
+
     return pipelineMultisampleStateCreateInfo;
 }
 
@@ -560,7 +581,7 @@ inline VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo()
 {
     VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
     pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    
+
     return pipelineDynamicStateCreateInfo;
 }
 
