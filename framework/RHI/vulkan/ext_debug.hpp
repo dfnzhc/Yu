@@ -4,12 +4,10 @@
 
 #pragma once
 
-#include <vulkan/vulkan_core.h>
 #include "instance_properties.hpp"
-
 namespace yu::vk {
 
-void CheckDebugReportInstanceEXT(InstanceProperties& ip, bool gpuValidation);
+bool CheckDebugUtilsInstanceEXT(InstanceProperties& ip);
 
 void SetupDebugMessenger(VkInstance instance);
 void DestroyDebugMessenger(VkInstance instance);
