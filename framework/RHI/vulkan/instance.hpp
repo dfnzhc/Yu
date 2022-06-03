@@ -15,10 +15,16 @@ public:
     
     ~Instance();
     
+    VkInstance getHandel() const { return instance_; }
+    
+    VkPhysicalDevice getBestDevice();
 private:
+    
+    void setEssentialExtensions();
+    
     InstanceProperties properties_;
 
-    VkInstance handle_{VK_NULL_HANDLE};
+    VkInstance instance_{VK_NULL_HANDLE};
 };
 
 } // yu::vk

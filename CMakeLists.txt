@@ -13,6 +13,12 @@ list(APPEND YU_DEFINITIONS YU_ROOT_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 # add third party libraries
 add_subdirectory(third_party)
 
+option(USE_VMA "Use vulkan memory allocator" ON)
+
+if (USE_VMA)
+    list(APPEND YU_DEFINITIONS "USE_VMA")
+endif()
+
 # add the library
 add_subdirectory(framework)
 

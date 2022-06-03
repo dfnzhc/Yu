@@ -27,8 +27,16 @@ inline VkValidationFeaturesEXT validationFeatures()
 {
     VkValidationFeaturesEXT features{};
     features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
-    
+
     return features;
+}
+
+inline VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfoEXT()
+{
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    
+    return debugCreateInfo;
 }
 
 inline VkMemoryAllocateInfo memoryAllocateInfo()
