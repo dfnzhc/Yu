@@ -15,7 +15,7 @@ public:
     
     ~Instance();
     
-    VkInstance getHandel() const { return instance_; }
+    VkInstance getHandle() const { return instance_; }
     
     VkPhysicalDevice getBestDevice();
 private:

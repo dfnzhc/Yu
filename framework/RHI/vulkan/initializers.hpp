@@ -35,8 +35,50 @@ inline VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfoEXT()
 {
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
     debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    
+
     return debugCreateInfo;
+}
+
+inline VkDeviceQueueCreateInfo deviceQueueCreateInfo(uint32_t queueFamilyIndex)
+{
+    VkDeviceQueueCreateInfo queueInfo{};
+    queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueInfo.queueFamilyIndex = queueFamilyIndex;
+    queueInfo.queueCount = 1;
+
+    return queueInfo;
+}
+
+inline VkDeviceCreateInfo deviceCreateInfo()
+{
+    VkDeviceCreateInfo deviceCreateInfo{};
+    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+    return deviceCreateInfo;
+}
+
+inline VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR shaderSubgroupExtendedTypesFeatures()
+{
+    VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR shaderSubgroupExtendedType = {};
+    shaderSubgroupExtendedType.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES_KHR;
+    
+    return shaderSubgroupExtendedType;
+}
+
+inline VkPhysicalDeviceRobustness2FeaturesEXT robustness2Features()
+{
+    VkPhysicalDeviceRobustness2FeaturesEXT robustness2 = {};
+    robustness2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
+
+    return robustness2;
+}
+
+inline VkPhysicalDeviceFeatures2 physicalDeviceFeatures2()
+{
+    VkPhysicalDeviceFeatures2 features2 = {};
+    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+    return features2;
 }
 
 inline VkMemoryAllocateInfo memoryAllocateInfo()

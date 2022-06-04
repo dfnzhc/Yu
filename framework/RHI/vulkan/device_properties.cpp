@@ -77,7 +77,7 @@ uint32_t DeviceProperties::getQueueFamilyIndex(VkQueueFlagBits queueFlags) const
         }
     }
 
-    LOG_FATAL("Could not find a matching queue family index");
+    throw std::runtime_error("Could not find a matching queue family index");
 }
 
 } // namespace yu::vk
