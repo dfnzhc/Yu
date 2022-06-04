@@ -12,16 +12,19 @@
 
 #include "device_properties.hpp"
 #include "vulkan_utils.hpp"
+#include <window.hpp>
+#include "instance.hpp"
 
 namespace yu::vk {
 
-class Device
+
+class VulkanDevice
 {
 public:
-    Device() = default;
-    ~Device();
+    VulkanDevice() = default;
+    ~VulkanDevice();
     
-    void init(VkInstance instance, VkPhysicalDevice physicalDevice, VkQueueFlags requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT);
+    void init(const VulkanInstance& instance);
     void cleanup();
     
     VkDevice getHandle() const { return device_; }
@@ -33,20 +36,21 @@ public:
 
 private:
     void setEssentialExtensions();
+    std::vector<VkDeviceQueueCreateInfo> getDeviceQueueInfos(VkSurfaceKHR surface);
 
 private:
     DeviceProperties properties_;
 
-    VkDevice device_{VK_NULL_HANDLE};
+    VkDevice device_{};
     
     VkQueue graphics_queue_{};
-    uint32_t graphics_queue_index_{};
+    uint32_t graphics_queue_index_{UINT32_MAX};
     
     VkQueue compute_queue_{};
-    uint32_t compute_queue_index_{};
+    uint32_t compute_queue_index_{UINT32_MAX};
     
-    VkQueue transfer_queue_{};
-    uint32_t transfer_queue_index_{};
+    VkQueue present_queue_{};
+    uint32_t present_queue_index_{UINT32_MAX};
     
 #ifdef USE_VMA
     VmaAllocator allocator_ = nullptr;

@@ -13,7 +13,6 @@ struct DeviceProperties : public Properties
     void init(VkPhysicalDevice physicalDevice);
 
     std::pair<std::string, std::string> getDeviceInfo() const;
-    uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlags) const;
 
     VkPhysicalDevice physical_device{};
     

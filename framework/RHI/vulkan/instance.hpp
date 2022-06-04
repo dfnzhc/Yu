@@ -5,26 +5,28 @@
 #pragma once
 
 #include "instance_properties.hpp"
+#include <window.hpp>
 
 namespace yu::vk {
 
-class Instance
+class VulkanInstance
 {
 public:
-    Instance(std::string_view appName, InstanceProperties instanceProps);
+    VulkanInstance(std::string_view appName, InstanceProperties instanceProps);
+    ~VulkanInstance();
     
-    ~Instance();
+    void createSurface(const San::Window* window);
     
+    VkSurfaceKHR getSurface() const { return surface_; }
     VkInstance getHandle() const { return instance_; }
-    
-    VkPhysicalDevice getBestDevice();
+    VkPhysicalDevice getBestDevice() const;
 private:
     
     void setEssentialExtensions();
     
     InstanceProperties properties_;
-
-    VkInstance instance_{VK_NULL_HANDLE};
+    VkInstance instance_{};
+    VkSurfaceKHR surface_{};
 };
 
 } // yu::vk

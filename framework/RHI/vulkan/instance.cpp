@@ -11,9 +11,14 @@
 
 #include <vulkan/vulkan_win32.h>
 
+#include <glfw_window.hpp>
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 namespace yu::vk {
 
-Instance::Instance(std::string_view appName, InstanceProperties instanceProps)
+VulkanInstance::VulkanInstance(std::string_view appName, InstanceProperties instanceProps)
     : properties_{std::move(instanceProps)}
 {
     auto appInfo = applicationInfo();
@@ -40,10 +45,14 @@ Instance::Instance(std::string_view appName, InstanceProperties instanceProps)
     SetupDebugMessenger(instance_);
 }
 
-Instance::~Instance()
+VulkanInstance::~VulkanInstance()
 {
     // destroy debug messenger
     DestroyDebugMessenger(instance_);
+    
+    if (surface_ != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(instance_, surface_, nullptr);
+    }
 
     if (instance_ != VK_NULL_HANDLE) {
         vkDestroyInstance(instance_, nullptr);
@@ -51,14 +60,14 @@ Instance::~Instance()
     }
 }
 
-void Instance::setEssentialExtensions()
+void VulkanInstance::setEssentialExtensions()
 {
     // set the extensions and layers
     if (properties_.enabled_validation) {
         CheckDebugUtilsInstanceEXT(properties_);
     }
     CheckHDRInstanceEXT(properties_);
-    
+
     properties_.addExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
     properties_.addExtension(VK_KHR_SURFACE_EXTENSION_NAME);
 }
@@ -91,7 +100,7 @@ uint32_t GetScore(VkPhysicalDevice physicalDevice)
     return score;
 }
 
-VkPhysicalDevice Instance::getBestDevice()
+VkPhysicalDevice VulkanInstance::getBestDevice() const
 {
     uint32_t physicalDeviceCount = 1;
     uint32_t const req_count = physicalDeviceCount;
@@ -109,6 +118,13 @@ VkPhysicalDevice Instance::getBestDevice()
         ratings.insert(std::make_pair(GetScore(*it), *it));
 
     return ratings.rbegin()->second;
+}
+
+void VulkanInstance::createSurface(const San::Window* window)
+{
+    // create surface
+    auto* glfw_window = dynamic_cast<const San::GLFW_Window*>(window);
+    VK_CHECK(glfwCreateWindowSurface(instance_, glfw_window->getGLFWHandle(), nullptr, &surface_));
 }
 
 } // yu::vk
