@@ -30,6 +30,15 @@ public:
     VkDevice getHandle() const { return device_; }
     DeviceProperties getProperties() const { return properties_; }
     
+    VkQueue getGraphicsQueue() const { return graphics_queue_; }
+    uint32_t getGraphicsQueueIndex() const { return graphics_queue_index_; }
+    
+    VkQueue getComputeQueue() const { return compute_queue_; }
+    uint32_t getComputeQueueIndex() const { return compute_queue_index_; }
+    
+    VkQueue getPresentQueue() const { return present_queue_; }
+    uint32_t getPresentQueueIndex() const { return present_queue_index_; }
+    
 #ifdef USE_VMA
     VmaAllocator getAllocator() const { return allocator_; }
 #endif

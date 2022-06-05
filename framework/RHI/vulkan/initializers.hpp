@@ -49,6 +49,14 @@ inline VkDeviceQueueCreateInfo deviceQueueCreateInfo(uint32_t queueFamilyIndex)
     return queueInfo;
 }
 
+inline VkSwapchainCreateInfoKHR swapChainCreateInfo()
+{
+	VkSwapchainCreateInfoKHR swapchainCI = {};
+	swapchainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    
+    return swapchainCI;
+}
+
 inline VkDeviceCreateInfo deviceCreateInfo()
 {
     VkDeviceCreateInfo deviceCreateInfo{};
@@ -61,7 +69,7 @@ inline VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR shaderSubgroupExte
 {
     VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR shaderSubgroupExtendedType = {};
     shaderSubgroupExtendedType.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES_KHR;
-    
+
     return shaderSubgroupExtendedType;
 }
 
