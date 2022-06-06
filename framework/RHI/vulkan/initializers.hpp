@@ -151,6 +151,14 @@ inline VkRenderPassCreateInfo renderPassCreateInfo()
     return renderPassCreateInfo;
 }
 
+inline VkPresentInfoKHR presentInfo()
+{
+    VkPresentInfoKHR present{};
+    present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    
+    return present;
+}
+
 /** @brief Initialize an image memory barrier with no image transfer ownership */
 inline VkImageMemoryBarrier imageMemoryBarrier()
 {
