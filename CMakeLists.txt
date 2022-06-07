@@ -10,6 +10,20 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(Global_Options)
 list(APPEND YU_DEFINITIONS YU_ROOT_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 
+include(utilities)
+#--------------------------------------------------------------------------------------------------
+# Compiled shader to SPIR-V
+compile_glsl_directory(
+        SRC "${CMAKE_CURRENT_SOURCE_DIR}/data/shaders"
+        DST "${CMAKE_CURRENT_SOURCE_DIR}/data/shaders/spv"
+        VULKAN_TARGET "vulkan1.3"
+)
+
+add_custom_target(
+        Shaders
+        DEPENDS ${SPV_OUTPUT}
+)
+
 # add third party libraries
 add_subdirectory(third_party)
 

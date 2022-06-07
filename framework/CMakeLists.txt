@@ -27,7 +27,7 @@ set(VULKAN_FILES
         RHI/vulkan/instance.cpp
         RHI/vulkan/error.cpp 
         RHI/vulkan/ext_debug.cpp
-        RHI/vulkan/device.cpp RHI/vulkan/device.hpp RHI/vulkan/device_properties.cpp RHI/vulkan/device_properties.hpp RHI/vulkan/properties.hpp RHI/vulkan/properties.cpp RHI/vulkan/vulkan_utils.hpp RHI/vulkan/ext_float.cpp RHI/vulkan/ext_float.hpp RHI/vulkan/ext_hdr.cpp RHI/vulkan/ext_hdr.hpp RHI/vulkan/ext_raytracing.cpp RHI/vulkan/ext_raytracing.hpp)
+        RHI/vulkan/device.cpp RHI/vulkan/device.hpp RHI/vulkan/device_properties.cpp RHI/vulkan/device_properties.hpp RHI/vulkan/properties.hpp RHI/vulkan/properties.cpp RHI/vulkan/vulkan_utils.hpp RHI/vulkan/ext_float.cpp RHI/vulkan/ext_float.hpp RHI/vulkan/ext_hdr.cpp RHI/vulkan/ext_hdr.hpp RHI/vulkan/ext_raytracing.cpp RHI/vulkan/ext_raytracing.hpp RHI/vulkan/swap_chain.cpp RHI/vulkan/swap_chain.hpp RHI/vulkan/pipeline.cpp RHI/vulkan/pipeline.hpp RHI/vulkan/vulkan_utils.cpp)
 
 # set the group of the source files
 source_group("common\\" FILES ${COMMON_FILES})
@@ -41,8 +41,6 @@ set(PROJECT_FILES
 set_source_files_properties(${PROJECT_FILES} PROPERTIES LANGUAGE CXX)
 
 add_library(${PROJECT_NAME} STATIC ${PROJECT_FILES})
-
-
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${YU_DEFINITIONS})
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
