@@ -8,4 +8,7 @@
 
 namespace yu::vk {
 
+VkShaderStageFlagBits GetShaderType(std::string_view fileName);
+VkShaderModule LoadShader(std::string_view fileName, VkDevice device);
+
 } // namespace yu::vk

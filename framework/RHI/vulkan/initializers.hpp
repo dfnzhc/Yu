@@ -51,9 +51,9 @@ inline VkDeviceQueueCreateInfo deviceQueueCreateInfo(uint32_t queueFamilyIndex)
 
 inline VkSwapchainCreateInfoKHR swapChainCreateInfo()
 {
-	VkSwapchainCreateInfoKHR swapchainCI = {};
-	swapchainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    
+    VkSwapchainCreateInfoKHR swapchainCI = {};
+    swapchainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+
     return swapchainCI;
 }
 
@@ -155,7 +155,7 @@ inline VkPresentInfoKHR presentInfo()
 {
     VkPresentInfoKHR present{};
     present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    
+
     return present;
 }
 
@@ -378,6 +378,7 @@ inline VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(
 {
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
     pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutCreateInfo.pNext = nullptr;
     pipelineLayoutCreateInfo.setLayoutCount = setLayoutCount;
     return pipelineLayoutCreateInfo;
 }
@@ -504,6 +505,7 @@ inline VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateIn
 {
     VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo{};
     pipelineInputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    pipelineInputAssemblyStateCreateInfo.pNext = nullptr;
 
     return pipelineInputAssemblyStateCreateInfo;
 }
@@ -610,10 +612,11 @@ inline VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo(
     pipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     pipelineMultisampleStateCreateInfo.rasterizationSamples = rasterizationSamples;
     pipelineMultisampleStateCreateInfo.flags = flags;
-    pipelineMultisampleStateCreateInfo.minSampleShading = 1.0f; // Optional
-    pipelineMultisampleStateCreateInfo.pSampleMask = nullptr; // Optional
-    pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // Optional
-    pipelineMultisampleStateCreateInfo.alphaToOneEnable = VK_FALSE; // Optional
+    pipelineMultisampleStateCreateInfo.pSampleMask = nullptr;               // Optional
+    pipelineMultisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;      // Optional
+    pipelineMultisampleStateCreateInfo.minSampleShading = 0.0f;             // Optional
+    pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE;    // Optional
+    pipelineMultisampleStateCreateInfo.alphaToOneEnable = VK_FALSE;         // Optional
 
     return pipelineMultisampleStateCreateInfo;
 }
@@ -678,7 +681,9 @@ inline VkGraphicsPipelineCreateInfo pipelineCreateInfo()
 {
     VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
     pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineCreateInfo.basePipelineIndex = -1;
+    pipelineCreateInfo.pNext = nullptr;
+    pipelineCreateInfo.flags = 0;
+    pipelineCreateInfo.basePipelineIndex = 0;
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     return pipelineCreateInfo;
 }

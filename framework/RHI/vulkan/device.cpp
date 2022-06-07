@@ -88,6 +88,8 @@ void VulkanDevice::cleanup()
     }
 #endif
 
+    destroyPipelineCache();
+
     if (device_ != VK_NULL_HANDLE) {
         vkDestroyDevice(device_, nullptr);
         device_ = VK_NULL_HANDLE;
@@ -170,8 +172,27 @@ std::vector<VkDeviceQueueCreateInfo> VulkanDevice::getDeviceQueueInfos(VkSurface
 
         queueCreateInfos.push_back(queue_info);
     }
-    
+
     return queueCreateInfos;
+}
+
+void VulkanDevice::createPipelineCache()
+{
+    VkPipelineCacheCreateInfo pipelineCache;
+    pipelineCache.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+    pipelineCache.pNext = nullptr;
+    pipelineCache.initialDataSize = 0;
+    pipelineCache.pInitialData = nullptr;
+    pipelineCache.flags = 0;
+    VK_CHECK(vkCreatePipelineCache(device_, &pipelineCache, nullptr, &pipeline_cache_));
+}
+
+void VulkanDevice::destroyPipelineCache()
+{
+    if (pipeline_cache_ != VK_NULL_HANDLE) {
+        vkDestroyPipelineCache(device_, pipeline_cache_, nullptr);
+        pipeline_cache_ = VK_NULL_HANDLE;
+    }
 }
 
 } // yu::vk
