@@ -198,7 +198,6 @@ void SwapChain::destroyWindowSizeDependency()
         vkDestroySwapchainKHR(device_->getHandle(), swap_chain_, nullptr);
         swap_chain_ = VK_NULL_HANDLE;
     }
-
 }
 
 void SwapChain::getSurfaceFormat()

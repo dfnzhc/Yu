@@ -110,6 +110,7 @@ inline VkCommandBufferAllocateInfo commandBufferAllocateInfo(
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandBufferAllocateInfo.pNext = nullptr;
     commandBufferAllocateInfo.commandPool = commandPool;
     commandBufferAllocateInfo.level = level;
     commandBufferAllocateInfo.commandBufferCount = bufferCount;
