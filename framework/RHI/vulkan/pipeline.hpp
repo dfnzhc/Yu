@@ -20,10 +20,12 @@ public:
 
     void updatePipeline(VkRenderPass renderPass,
                         VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT,
-                        VkPipelineColorBlendStateCreateInfo* blendDesc = NULL);
+                        VkPipelineColorBlendStateCreateInfo* blendDesc = nullptr);
 
     void destroy();
-    
+
+    void draw(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet = nullptr);
+
 private:
     void loadShader(std::string_view shaderFile);
 
