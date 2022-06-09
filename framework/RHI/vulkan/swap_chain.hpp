@@ -30,6 +30,8 @@ public:
     void getSemaphores(VkSemaphore *pImageAvailableSemaphore, VkSemaphore *pRenderFinishedSemaphores, VkFence *pCmdBufExecutedFences);
     VkResult present();
     
+    uint32_t getFrameCount() const ;
+    
     static constexpr uint32_t FRAMES_IN_FLIGHT = 2;
 
 private:

@@ -27,7 +27,7 @@ set(VULKAN_FILES
         RHI/vulkan/instance.cpp
         RHI/vulkan/error.cpp 
         RHI/vulkan/ext_debug.cpp
-        RHI/vulkan/device.cpp RHI/vulkan/device.hpp RHI/vulkan/device_properties.cpp RHI/vulkan/device_properties.hpp RHI/vulkan/properties.hpp RHI/vulkan/properties.cpp RHI/vulkan/vulkan_utils.hpp RHI/vulkan/ext_float.cpp RHI/vulkan/ext_float.hpp RHI/vulkan/ext_hdr.cpp RHI/vulkan/ext_hdr.hpp RHI/vulkan/ext_raytracing.cpp RHI/vulkan/ext_raytracing.hpp RHI/vulkan/swap_chain.cpp RHI/vulkan/swap_chain.hpp RHI/vulkan/pipeline.cpp RHI/vulkan/pipeline.hpp RHI/vulkan/vulkan_utils.cpp RHI/vulkan/command.cpp RHI/vulkan/command.hpp)
+        RHI/vulkan/device.cpp RHI/vulkan/device.hpp RHI/vulkan/device_properties.cpp RHI/vulkan/device_properties.hpp RHI/vulkan/properties.hpp RHI/vulkan/properties.cpp RHI/vulkan/vulkan_utils.hpp RHI/vulkan/ext_float.cpp RHI/vulkan/ext_float.hpp RHI/vulkan/ext_hdr.cpp RHI/vulkan/ext_hdr.hpp RHI/vulkan/ext_raytracing.cpp RHI/vulkan/ext_raytracing.hpp RHI/vulkan/swap_chain.cpp RHI/vulkan/swap_chain.hpp RHI/vulkan/pipeline.cpp RHI/vulkan/pipeline.hpp RHI/vulkan/vulkan_utils.cpp RHI/vulkan/command.cpp RHI/vulkan/command.hpp RHI/vulkan/appbase.cpp RHI/vulkan/appbase.hpp RHI/vulkan/renderer.cpp RHI/vulkan/renderer.hpp)
 
 # set the group of the source files
 source_group("common\\" FILES ${COMMON_FILES})

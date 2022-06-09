@@ -413,4 +413,9 @@ VkResult SwapChain::present()
     return res;
 }
 
+uint32_t SwapChain::getFrameCount() const
+{
+    return FRAMES_IN_FLIGHT;
+}
+
 } // yu::vk
