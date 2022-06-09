@@ -23,8 +23,8 @@ public:
     VulkanDevice() = default;
     ~VulkanDevice();
 
-    void init(const VulkanInstance& instance);
-    void cleanup();
+    void create(const VulkanInstance& instance);
+    void destroy();
 
     VkDevice getHandle() const { return device_; }
     DeviceProperties getProperties() const { return properties_; }

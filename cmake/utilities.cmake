@@ -100,8 +100,6 @@ function(compile_glsl)
             list(APPEND _SPVS ${GLSL_OUT})
         endif ()
 
-        message("= ${_SPVS}")
-
         # Appending the output name and the file source
         list(APPEND COMPILE_CMD -o ${GLSL_OUT} -V ${GLSL_SRC})
 
@@ -118,6 +116,8 @@ function(compile_glsl)
         )
     endforeach ()
 
+    message(STATUS "Compiled GLSL Shaders to SPV: ${_SPVS}")
+    
     # Setting OUT variables 
     set(GLSL_SOURCES ${COMPILE_SOURCE_FILES} PARENT_SCOPE)
     set(GLSL_HEADERS ${COMPILE_HEADER_FILES} PARENT_SCOPE)
@@ -149,9 +149,6 @@ function(compile_glsl_directory)
     set(oneValueArgs SRC DST VULKAN_TARGET HEADER DEPENDENCY FLAGS)
     set(multiValueArgs)
     cmake_parse_arguments(COMPILE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-    message("S ${COMPILE_SRC}")
-    message("D ${COMPILE_DST}")
 
     # Collecting all source files
     file(GLOB GLSL_SOURCE_FILES

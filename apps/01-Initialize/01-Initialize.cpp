@@ -31,7 +31,7 @@ int main()
 
         // 2. 创建 vulkan 设备
         VulkanDevice device;
-        device.init(inst);
+        device.create(inst);
 
         // 3. 创建交换链
         SwapChain swapChain{device};
@@ -62,7 +62,7 @@ int main()
 
                 auto extent = platform.getWindow()->getExtent();
                 const VkViewport viewport = yu::vk::viewport((float) extent.width, (float) extent.height, 0.0f, 1.0f);
-                const VkRect2D scissor = yu::vk::rect2D(extent.width, extent.height, 0, 0);
+                const VkRect2D scissor = yu::vk::rect2D((int32_t)extent.width, (int32_t)extent.height, 0, 0);
 
                 // 取得当前帧缓冲区的索引
                 auto imageIndex = swapChain.waitForSwapChain();
@@ -84,7 +84,7 @@ int main()
                 {
                     auto renderPassInfo = renderPassBeginInfo();
                     renderPassInfo.renderPass = swapChain.getRenderPass();
-                    renderPassInfo.framebuffer = swapChain.getFrameBuffer(imageIndex);
+                    renderPassInfo.framebuffer = swapChain.getFrameBuffer(static_cast<int>(imageIndex));
                     renderPassInfo.renderArea.offset = {0, 0};
                     renderPassInfo.renderArea.extent = {extent.width, extent.height};
 

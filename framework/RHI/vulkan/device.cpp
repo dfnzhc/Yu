@@ -20,10 +20,10 @@ namespace yu::vk {
 
 VulkanDevice::~VulkanDevice()
 {
-    cleanup();
+    destroy();
 }
 
-void VulkanDevice::init(const VulkanInstance& instance)
+void VulkanDevice::create(const VulkanInstance& instance)
 {
     properties_.init(instance.getBestDevice());
     setEssentialExtensions();
@@ -79,7 +79,7 @@ void VulkanDevice::init(const VulkanInstance& instance)
 #endif
 }
 
-void VulkanDevice::cleanup()
+void VulkanDevice::destroy()
 {
 #ifdef USE_VMA
     if (allocator_ != nullptr) {
