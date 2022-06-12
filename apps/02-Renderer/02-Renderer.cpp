@@ -16,7 +16,7 @@
 
 using namespace yu::vk;
 
-class RendererSample01 : public Renderer
+class RendererSample02 : public Renderer
 {
 public:
     void create(VulkanDevice* device, SwapChain* swapChain) override
@@ -118,10 +118,10 @@ private:
     VkDescriptorSetLayout descriptor_set_layout_{};
 };
 
-class AppSample01 : public AppBase
+class AppSample02 : public AppBase
 {
 public:
-    ~AppSample01() override = default;
+    ~AppSample02() override = default;
 
     void update(float delta_time) override
     {
@@ -133,7 +133,7 @@ public:
 protected:
     void initRenderer() override
     {
-        renderer_ = std::make_unique<RendererSample01>();
+        renderer_ = std::make_unique<RendererSample02>();
     }
 
     void render() override
@@ -148,7 +148,7 @@ int main()
 
     San::WinPlatform platform;
 
-    AppSample01 app{};
+    AppSample02 app{};
     platform.setApplication(&app);
 
     auto code = platform.initialize();

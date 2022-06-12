@@ -4,7 +4,9 @@
 
 #pragma once
 
+#ifndef USE_VMA
 #define USE_VMA
+#endif
 
 #ifdef USE_VMA
 #include <vk_mem_alloc.h>
