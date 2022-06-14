@@ -45,4 +45,21 @@ std::pair<std::string, std::string> DeviceProperties::getDeviceInfo() const
     return {device_properties.deviceName, apiVersion};
 }
 
+bool DeviceProperties::getMemoryType(uint32_t typeBits, VkFlags mask, uint32_t* typeIndex)
+{
+    // 搜索设备的储存类型中是否有 mask 所指定的，若有则返回它的索引
+    for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++) {
+        if ((typeBits & 1) == 1) {
+            if ((memory_properties.memoryTypes[i].propertyFlags & mask) == mask) {
+                *typeIndex = i;
+                return true;
+            }
+        }
+        typeBits >>= 1;
+    }
+    
+    // 没有合适的内存，查找失败
+    return false;
+}
+
 } // namespace yu::vk

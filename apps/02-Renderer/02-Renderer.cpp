@@ -14,6 +14,8 @@
 #include "RHI/vulkan/command.hpp"
 #include "RHI/vulkan/appbase.hpp"
 
+#include <glm/glm.hpp>
+
 using namespace yu::vk;
 
 class RendererSample02 : public Renderer
@@ -24,23 +26,29 @@ public:
         Renderer::create(device, swapChain);
 
         // 创建描述符布局（对着色器资源绑定的描述）
-        auto layoutBinding = yu::vk::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0);
-        auto descriptorLayout = yu::vk::descriptorSetLayoutCreateInfo(&layoutBinding, 1);
-        VK_CHECK(vkCreateDescriptorSetLayout(device->getHandle(), &descriptorLayout, nullptr, &descriptor_set_layout_));
+        std::vector<VkDescriptorSetLayoutBinding> layoutBinding(1);
+        layoutBinding[0] = yu::vk::descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            0);
+
+        descriptor_heap_.createDescriptorSetLayoutAndAllocDescriptorSet(&layoutBinding, &descriptor_set_layout_, &descriptor_set_);
+        constantBuffer_.setDescriptorSet(0, sizeof(glm::vec3), descriptor_set_);
 
         // 创建流水线
-        pipeline_.create(*device, swapChain->getRenderPass(), {"01_shader_base.vert", "01_shader_base.frag"}, descriptor_set_layout_);
+        pipeline_.create(*device, swapChain->getRenderPass(), {"01_shader_base.vert", "01.5_shader_base_color.frag"}, descriptor_set_layout_);
     }
 
     void destroy() override
     {
-        Renderer::destroy();
-
         // 释放流水线
         pipeline_.destroy();
 
         // 释放描述符布局
+        descriptor_heap_.freeDescriptor(descriptor_set_);
         vkDestroyDescriptorSetLayout(device_->getHandle(), descriptor_set_layout_, nullptr);
+        
+        Renderer::destroy();
     }
 
     void render() override
@@ -49,6 +57,7 @@ public:
         auto imageIndex = swap_chain_->waitForSwapChain();
 
         // 切换命令列表到当前帧
+        constantBuffer_.beginFrame();
         command_list_.beginFrame();
 
         // 取到一个命令缓冲区，然后开始记录
@@ -79,9 +88,14 @@ public:
         // 动态更新视口和裁剪矩形
         vkCmdSetScissor(cmdBuffer, 0, 1, &rect_scissor_);
         vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
-
+        
+        glm::vec3* col = nullptr;
+        VkDescriptorBufferInfo constantBuffer;
+        constantBuffer_.allocConstantBuffer(sizeof(glm::vec3), (void**)&col, constantBuffer);
+        *col = glm::vec3{0.7, 0.7, 0.3};
+        
         // 绘制设定的流水线
-        pipeline_.draw(cmdBuffer);
+        pipeline_.draw(cmdBuffer, &constantBuffer, descriptor_set_);
 
         // 停止 render pass 的记录
         vkCmdEndRenderPass(cmdBuffer);
@@ -108,13 +122,14 @@ public:
 
             VK_CHECK(vkQueueSubmit(device_->getGraphicsQueue(), 1, &submit_info, CmdBufExecutedFences));
         }
-        
+
         Renderer::render();
     }
 
 private:
     VulkanPipeline pipeline_;
 
+    VkDescriptorSet descriptor_set_{};
     VkDescriptorSetLayout descriptor_set_layout_{};
 };
 
@@ -126,7 +141,7 @@ public:
     void update(float delta_time) override
     {
         AppBase::update(delta_time);
-        
+
         render();
     }
 

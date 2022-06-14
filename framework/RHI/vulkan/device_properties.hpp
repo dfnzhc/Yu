@@ -13,15 +13,16 @@ struct DeviceProperties : public Properties
     void init(VkPhysicalDevice physicalDevice);
 
     std::pair<std::string, std::string> getDeviceInfo() const;
+    bool getMemoryType(uint32_t typeBits, VkFlags mask, uint32_t* typeIndex);
 
     VkPhysicalDevice physical_device{};
-    
+
     VkPhysicalDeviceFeatures features;
     VkPhysicalDeviceMemoryProperties memory_properties{};
     VkPhysicalDeviceProperties device_properties{};
     VkPhysicalDeviceProperties2 device_properties2{};
     VkPhysicalDeviceSubgroupProperties subgroup_properties{};
-    
+
     uint32_t queue_family_count = 0;
     std::vector<VkQueueFamilyProperties> queue_family_properties;
 

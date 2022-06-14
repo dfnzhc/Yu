@@ -24,7 +24,7 @@ public:
 
     void destroy();
 
-    void draw(VkCommandBuffer cmdBuffer, VkDescriptorSet descriptorSet = nullptr);
+    void draw(VkCommandBuffer cmdBuffer, VkDescriptorBufferInfo* pConstantBuffer = nullptr, VkDescriptorSet descriptorSet = nullptr);
 
 private:
     void loadShader(std::string_view shaderFile);

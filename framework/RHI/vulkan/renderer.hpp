@@ -7,6 +7,8 @@
 #include "device.hpp"
 #include "swap_chain.hpp"
 #include "command.hpp"
+#include "dynamic_buffer.hpp"
+#include "descriptor_heap.hpp"
 
 namespace yu::vk {
 
@@ -27,10 +29,12 @@ public:
     virtual void render();
 
 protected:
-    VulkanDevice* device_ = nullptr;
+    const VulkanDevice* device_ = nullptr;
     SwapChain* swap_chain_ = nullptr;
 
     CommandList command_list_;
+    DynamicBuffer constantBuffer_;
+    DescriptorHeap descriptor_heap_;
 
     VkRect2D rect_scissor_{};
     VkViewport viewport_{};
