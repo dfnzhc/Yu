@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Application.hpp>
+#include <common/mouse_tracker.hpp>
 
 #include "renderer.hpp"
 
@@ -38,6 +39,8 @@ protected:
     
     std::unique_ptr<VulkanDevice> device_ = nullptr;
     std::unique_ptr<SwapChain> swap_chain_ = nullptr;
+    
+    std::unique_ptr<yu::MouseTracker> mouse_tracker_ = nullptr;
 
     struct
     {

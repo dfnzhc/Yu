@@ -25,14 +25,19 @@ void AppBase::setup()
     LOG_INFO("GPU: {}", system_info_.GPUName);
     LOG_INFO("API: {}", system_info_.APIVersion);
 
+    auto [width, height] = platform_->getWindow()->getExtent();
+
+    // 创建鼠标的追踪类
+    mouse_tracker_ = std::make_unique<yu::MouseTracker>();
+    mouse_tracker_->camera_->setFov(glm::radians(60.0f), width, height, 0.1f, 1000.0f);
+    mouse_tracker_->camera_->lookAt({0, 0, 3}, vec3{0, 0, 0});
+
     // 创建渲染器
     initRenderer();
     if (!renderer_) {
         LOG_FATAL("Renderer has not been setup");
     }
-    renderer_->create(device_.get(), swap_chain_.get());
-    
-    auto [width, height] = platform_->getWindow()->getExtent();
+    renderer_->create(*device_, swap_chain_.get(), *mouse_tracker_);
     renderer_->createWindowSizeDependency(width, height);
 }
 
@@ -58,15 +63,44 @@ bool AppBase::resize(uint32_t width, uint32_t height)
     if (!Application::resize(width, height)) {
         return false;
     }
-    
+
     renderer_->resize(width, height);
-    
+
     return true;
 }
 
 void AppBase::input_event(const San::InputEvent& input_event)
 {
     Application::input_event(input_event);
+
+    using San::InputEvent;
+    using San::EventType;
+    using San::KeyInputEvent;
+    using San::MouseInputEvent;
+    using San::MouseButton;
+    using San::MouseAction;
+
+    if (input_event.type == EventType::Keyboard) {
+        [[maybe_unused]]
+        const auto& key_event = static_cast<const KeyInputEvent&>(input_event);
+
+//        LOG_INFO("[Keyboard] key: {}, action: {}", static_cast<int>(key_event.code), GetActionString(key_event.action));
+    } else if (input_event.type == EventType::Mouse) {
+        [[maybe_unused]]
+        const auto& mouse_event = static_cast<const MouseInputEvent&>(input_event);
+
+        if (mouse_event.isEvent(MouseButton::Left, MouseAction::PressedMove)) {
+            mouse_tracker_->update(static_cast<int>(mouse_event.pos_x),
+                                   static_cast<int>(mouse_event.pos_y));
+        }
+
+        if (mouse_event.isEvent(MouseButton::Left, MouseAction::Release)) {
+            mouse_tracker_->stopTracking();
+        }
+//        LOG_INFO("[Mouse] key: {}, action: {} ({}.{} {})",
+//                 GetButtonString(mouse_event.button),
+//                 GetActionString(mouse_event.action), mouse_event.pos_x, mouse_event.pos_y, mouse_event.scroll_dir);
+    }
 }
 
 void AppBase::initVulkan()

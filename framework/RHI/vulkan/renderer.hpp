@@ -10,6 +10,9 @@
 #include "dynamic_buffer.hpp"
 #include "descriptor_heap.hpp"
 
+#include <common/mouse_tracker.hpp>
+
+
 namespace yu::vk {
 
 class Renderer
@@ -18,7 +21,7 @@ public:
     Renderer() = default;
     ~Renderer() = default;
 
-    virtual void create(VulkanDevice* device, SwapChain* swapChain);
+    virtual void create(const VulkanDevice& device, SwapChain* swapChain, const MouseTracker& mouseTracker);
     virtual void destroy();
 
     virtual void createWindowSizeDependency(uint32_t width, uint32_t height);
@@ -31,6 +34,7 @@ public:
 protected:
     const VulkanDevice* device_ = nullptr;
     SwapChain* swap_chain_ = nullptr;
+    const MouseTracker* mouse_tracker_ = nullptr;
 
     CommandList command_list_;
     DynamicBuffer constantBuffer_;

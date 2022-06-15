@@ -16,27 +16,28 @@
 
 #include <glm/glm.hpp>
 
+using namespace yu;
 using namespace yu::vk;
 
 class RendererSample02 : public Renderer
 {
 public:
-    void create(VulkanDevice* device, SwapChain* swapChain) override
+    void create(const VulkanDevice& device, SwapChain* swapChain, const MouseTracker& mouseTracker) override
     {
-        Renderer::create(device, swapChain);
+        Renderer::create(device, swapChain, mouseTracker);
 
         // 创建描述符布局（对着色器资源绑定的描述）
         std::vector<VkDescriptorSetLayoutBinding> layoutBinding(1);
         layoutBinding[0] = yu::vk::descriptorSetLayoutBinding(
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            VK_SHADER_STAGE_VERTEX_BIT,
             0);
 
         descriptor_heap_.createDescriptorSetLayoutAndAllocDescriptorSet(&layoutBinding, &descriptor_set_layout_, &descriptor_set_);
-        constantBuffer_.setDescriptorSet(0, sizeof(glm::vec3), descriptor_set_);
+        constantBuffer_.setDescriptorSet(0, sizeof(glm::mat4) * 2, descriptor_set_);
 
         // 创建流水线
-        pipeline_.create(*device, swapChain->getRenderPass(), {"01_shader_base.vert", "01.5_shader_base_color.frag"}, descriptor_set_layout_);
+        pipeline_.create(device, swapChain->getRenderPass(), {"01.5_shader_base_camera.vert", "01_shader_base.frag"}, descriptor_set_layout_);
     }
 
     void destroy() override
@@ -47,7 +48,7 @@ public:
         // 释放描述符布局
         descriptor_heap_.freeDescriptor(descriptor_set_);
         vkDestroyDescriptorSetLayout(device_->getHandle(), descriptor_set_layout_, nullptr);
-        
+
         Renderer::destroy();
     }
 
@@ -88,12 +89,13 @@ public:
         // 动态更新视口和裁剪矩形
         vkCmdSetScissor(cmdBuffer, 0, 1, &rect_scissor_);
         vkCmdSetViewport(cmdBuffer, 0, 1, &viewport_);
-        
-        glm::vec3* col = nullptr;
+
+        glm::mat4* mats;
         VkDescriptorBufferInfo constantBuffer;
-        constantBuffer_.allocConstantBuffer(sizeof(glm::vec3), (void**)&col, constantBuffer);
-        *col = glm::vec3{0.7, 0.7, 0.3};
-        
+        constantBuffer_.allocConstantBuffer(sizeof(glm::mat4) * 2, (void**) &mats, constantBuffer);
+        mats[0] = mouse_tracker_->camera_->view_mat;
+        mats[1] = mouse_tracker_->camera_->proj_mat;
+
         // 绘制设定的流水线
         pipeline_.draw(cmdBuffer, &constantBuffer, descriptor_set_);
 

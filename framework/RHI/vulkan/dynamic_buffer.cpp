@@ -4,7 +4,7 @@
 
 #include "dynamic_buffer.hpp"
 #include "error.hpp"
-#include <math_utils.hpp>
+#include <San/utils/math_utils.hpp>
 #include "initializers.hpp"
 
 namespace yu::vk {
