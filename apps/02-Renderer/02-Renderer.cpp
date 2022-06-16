@@ -33,11 +33,16 @@ public:
             VK_SHADER_STAGE_VERTEX_BIT,
             0);
 
-        descriptor_heap_.createDescriptorSetLayoutAndAllocDescriptorSet(&layoutBinding, &descriptor_set_layout_, &descriptor_set_);
+        descriptor_heap_.createDescriptorSetLayoutAndAllocDescriptorSet(&layoutBinding,
+                                                                        &descriptor_set_layout_,
+                                                                        &descriptor_set_);
         constantBuffer_.setDescriptorSet(0, sizeof(glm::mat4) * 2, descriptor_set_);
 
         // 创建流水线
-        pipeline_.create(device, swapChain->getRenderPass(), {"01.5_shader_base_camera.vert", "01_shader_base.frag"}, descriptor_set_layout_);
+        pipeline_.create(device,
+                         swapChain->getRenderPass(),
+                         {"01.5_shader_base_camera.vert", "01_shader_base.frag"},
+                         descriptor_set_layout_);
     }
 
     void destroy() override
@@ -95,6 +100,7 @@ public:
         constantBuffer_.allocConstantBuffer(sizeof(glm::mat4) * 2, (void**) &mats, constantBuffer);
         mats[0] = mouse_tracker_->camera_->view_mat;
         mats[1] = mouse_tracker_->camera_->proj_mat;
+
 
         // 绘制设定的流水线
         pipeline_.draw(cmdBuffer, &constantBuffer, descriptor_set_);
