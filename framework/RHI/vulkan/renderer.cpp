@@ -20,7 +20,7 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
 
     // 创建动态的常量缓冲区，用于设定 uniform、索引、顶点数据
     const uint32_t constantBuffersMemSize = 200 * 1024 * 1024;
-    constantBuffer_.create(device, swapChain->getFrameCount(), constantBuffersMemSize, "Uniforms");
+    constant_buffer_.create(device, swapChain->getFrameCount(), constantBuffersMemSize, "Uniforms");
 
     // 创建描述符堆，用来创建相应的描述符
     const uint32_t cbvDescriptorCount = 2000;
@@ -28,13 +28,18 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
     const uint32_t samplerDescriptorCount = 20;
     const uint32_t uavDescriptorCount = 10;
     descriptor_heap_.create(device, cbvDescriptorCount, srvDescriptorCount, samplerDescriptorCount, uavDescriptorCount);
+
+    // 创建一个顶点缓冲区，用于上传顶点、索引数据
+    const uint32_t vertexMemSize = (1 * 128) * 1024 * 1024;
+    vertex_buffer_.create(device, vertexMemSize, true, "VertexData");
 }
 
 void Renderer::destroy()
 {
     command_list_.destroy();
-    constantBuffer_.destroy();
+    constant_buffer_.destroy();
     descriptor_heap_.destroy();
+    vertex_buffer_.destroy();
 }
 
 void Renderer::createWindowSizeDependency(uint32_t width, uint32_t height)

@@ -9,6 +9,7 @@
 #include "command.hpp"
 #include "dynamic_buffer.hpp"
 #include "descriptor_heap.hpp"
+#include "static_buffer.hpp"
 
 #include <common/mouse_tracker.hpp>
 
@@ -37,8 +38,9 @@ protected:
     const MouseTracker* mouse_tracker_ = nullptr;
 
     CommandList command_list_;
-    DynamicBuffer constantBuffer_;
+    DynamicBuffer constant_buffer_;
     DescriptorHeap descriptor_heap_;
+    StaticBuffer vertex_buffer_;
 
     VkRect2D rect_scissor_{};
     VkViewport viewport_{};
