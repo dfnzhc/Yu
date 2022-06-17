@@ -30,7 +30,7 @@ void AppBase::setup()
     // 创建鼠标的追踪类
     mouse_tracker_ = std::make_unique<yu::MouseTracker>();
     mouse_tracker_->camera_->setFov(glm::radians(60.0f), width, height, 0.1f, 1000.0f);
-    mouse_tracker_->camera_->lookAt({0, 0, 3}, {0, 0, 0});
+    mouse_tracker_->camera_->lookAt({0, 0, 5}, {0, 0, 0});
 
     // 创建渲染器
     initRenderer();
@@ -96,6 +96,10 @@ void AppBase::input_event(const San::InputEvent& input_event)
 
         if (mouse_event.isEvent(MouseButton::Left, MouseAction::Release)) {
             mouse_tracker_->stopTracking();
+        }
+        
+        if (mouse_event.isEvent(MouseButton::Middle, MouseAction::Scroll)) {
+            mouse_tracker_->zoom(mouse_event.scroll_dir);
         }
 //        LOG_INFO("[Mouse] key: {}, action: {} ({}.{} {})",
 //                 GetButtonString(mouse_event.button),

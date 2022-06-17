@@ -36,7 +36,7 @@ public:
         descriptor_heap_.createDescriptorSetLayoutAndAllocDescriptorSet(&layoutBinding,
                                                                         &descriptor_set_layout_,
                                                                         &descriptor_set_);
-        constantBuffer_.setDescriptorSet(0, sizeof(glm::mat4) * 2, descriptor_set_);
+        constant_buffer_.setDescriptorSet(0, sizeof(glm::mat4) * 2, descriptor_set_);
 
         // 创建流水线
         pipeline_.create(device,
@@ -63,7 +63,7 @@ public:
         auto imageIndex = swap_chain_->waitForSwapChain();
 
         // 切换命令列表到当前帧
-        constantBuffer_.beginFrame();
+        constant_buffer_.beginFrame();
         command_list_.beginFrame();
 
         // 取到一个命令缓冲区，然后开始记录
@@ -97,7 +97,7 @@ public:
 
         glm::mat4* mats;
         VkDescriptorBufferInfo constantBuffer;
-        constantBuffer_.allocConstantBuffer(sizeof(glm::mat4) * 2, (void**) &mats, constantBuffer);
+        constant_buffer_.allocConstantBuffer(sizeof(glm::mat4) * 2, (void**) &mats, constantBuffer);
         mats[0] = mouse_tracker_->camera_->view_mat;
         mats[1] = mouse_tracker_->camera_->proj_mat;
 

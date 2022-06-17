@@ -19,6 +19,8 @@ public:
     
     void update(int x, int y);
     
+    void zoom(float dir);
+    
 public:
     std::unique_ptr<Camera> camera_ = nullptr;
 private:

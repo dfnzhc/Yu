@@ -26,6 +26,7 @@
 #include <limits>
 #include <set>
 #include <assert.h>
+#include <concepts>
 
 #ifdef YU_IN_WINDOWS
 #include <Windows.h>

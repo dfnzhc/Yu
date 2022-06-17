@@ -511,34 +511,34 @@ inline VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateIn
     return pipelineInputAssemblyStateCreateInfo;
 }
 
-inline VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo(
-    VkPolygonMode polygonMode,
-    VkCullModeFlags cullMode,
-    VkFrontFace frontFace,
-    VkPipelineRasterizationStateCreateFlags flags = 0)
-{
-    VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo{};
-    pipelineRasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    pipelineRasterizationStateCreateInfo.polygonMode = polygonMode;
-    pipelineRasterizationStateCreateInfo.cullMode = cullMode;
-    pipelineRasterizationStateCreateInfo.frontFace = frontFace;
-    pipelineRasterizationStateCreateInfo.flags = flags;
-    pipelineRasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
-    pipelineRasterizationStateCreateInfo.lineWidth = 1.0f;
-    return pipelineRasterizationStateCreateInfo;
-}
-
 inline VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo()
 {
     VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo{};
     pipelineRasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     pipelineRasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
+    pipelineRasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+    pipelineRasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
     pipelineRasterizationStateCreateInfo.lineWidth = 1.0f;
     pipelineRasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;    // Optional
     pipelineRasterizationStateCreateInfo.depthBiasClamp = 0.0f;             // Optional
     pipelineRasterizationStateCreateInfo.depthBiasSlopeFactor = 0.0f;       // Optional    
 
     return pipelineRasterizationStateCreateInfo;
+}
+
+inline VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo(
+    VkPolygonMode polygonMode,
+    VkCullModeFlags cullMode,
+    VkFrontFace frontFace,
+    VkPipelineRasterizationStateCreateFlags flags = 0)
+{
+    auto rasterizationStateCreateInfo = pipelineRasterizationStateCreateInfo();
+    rasterizationStateCreateInfo.polygonMode = polygonMode;
+    rasterizationStateCreateInfo.cullMode = cullMode;
+    rasterizationStateCreateInfo.frontFace = frontFace;
+    rasterizationStateCreateInfo.flags = flags;
+
+    return rasterizationStateCreateInfo;
 }
 
 inline VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState(
@@ -557,6 +557,9 @@ inline VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo(
 {
     VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo{};
     pipelineColorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    pipelineColorBlendStateCreateInfo.pNext = nullptr;
+    pipelineColorBlendStateCreateInfo.flags = 0;
+
     pipelineColorBlendStateCreateInfo.attachmentCount = attachmentCount;
     pipelineColorBlendStateCreateInfo.pAttachments = pAttachments;
     return pipelineColorBlendStateCreateInfo;
@@ -580,7 +583,18 @@ inline VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo
     pipelineDepthStencilStateCreateInfo.depthTestEnable = depthTestEnable;
     pipelineDepthStencilStateCreateInfo.depthWriteEnable = depthWriteEnable;
     pipelineDepthStencilStateCreateInfo.depthCompareOp = depthCompareOp;
+    pipelineDepthStencilStateCreateInfo.back.failOp = VK_STENCIL_OP_KEEP;
+    pipelineDepthStencilStateCreateInfo.back.passOp = VK_STENCIL_OP_KEEP;
     pipelineDepthStencilStateCreateInfo.back.compareOp = VK_COMPARE_OP_ALWAYS;
+    pipelineDepthStencilStateCreateInfo.back.compareMask = 0;
+    pipelineDepthStencilStateCreateInfo.back.reference = 0;
+    pipelineDepthStencilStateCreateInfo.back.depthFailOp = VK_STENCIL_OP_KEEP;
+    pipelineDepthStencilStateCreateInfo.back.writeMask = 0;
+    pipelineDepthStencilStateCreateInfo.front = pipelineDepthStencilStateCreateInfo.back;
+    pipelineDepthStencilStateCreateInfo.minDepthBounds = 0;
+    pipelineDepthStencilStateCreateInfo.maxDepthBounds = 0;
+    pipelineDepthStencilStateCreateInfo.stencilTestEnable = VK_FALSE;
+    
     return pipelineDepthStencilStateCreateInfo;
 }
 

@@ -14,9 +14,7 @@ struct Camera
     vec3 look_target{};
 
     // 右手系基坐标轴
-    vec3 x_axis{};
-    vec3 y_axis{};
-    vec3 z_axis{};
+    Frame frame{};
 
     mat4 view_mat{};
     mat4 proj_mat{};
@@ -36,15 +34,13 @@ struct Camera
         eye_pos = pos;
         look_target = target;
         look_distance = glm::distance(pos, target);
-        view_mat = glm::lookAt(pos, target, glm::vec3{0, 1, 0});
+        view_mat = glm::lookAtLH(pos, target, glm::vec3{0, 1, 0});
 
         const vec3 direction = glm::normalize(target - pos);
-        yaw = glm::atan(direction.z, direction.x);
-        pitch = glm::asin(direction.y);
+        frame = Frame::FromCameraDirection(direction);
 
-        z_axis = glm::normalize(pos - target);
-        x_axis = glm::normalize(glm::cross({0, 1, 0}, z_axis));
-        y_axis = glm::normalize(glm::cross(z_axis, x_axis));
+        yaw = glm::atan(-direction.z, direction.x);
+        pitch = glm::asin(direction.y);
     }
 
     void setFov(float fov, uint32_t width, uint32_t height, float nearPlane, float farPlane)
@@ -74,22 +70,37 @@ struct Camera
         return proj_mat * view_mat;
     }
 
-    vec3 getRight() const { return {glm::transpose(view_mat) * vec4{x_axis, 0.0}}; }
-    vec3 getUp() const { return {glm::transpose(view_mat) * vec4{y_axis, 0.0}}; }
-    vec3 getDirection() const { return {glm::transpose(view_mat) * vec4{-z_axis, 0.0}}; }
+    vec3 getRight() const { return {glm::transpose(view_mat) * vec4{frame.x, 0.0}}; }
+    vec3 getUp() const { return {glm::transpose(view_mat) * vec4{frame.y, 0.0}}; }
+    vec3 getDirection() const { return {glm::transpose(view_mat) * vec4{frame.z, 0.0}}; }
 
-    void updateOrbit(float _yaw, float _pitch, float scrollDir)
+    void updateOrbit(float _yaw, float _pitch)
     {
         yaw = _yaw;
         pitch = _pitch;
 
         vec3 viewDirLocal = PolarToVector(yaw, pitch);
-        viewDirLocal.z *= -1;
 
-        vec3 viewDirWorld = x_axis * viewDirLocal.x + y_axis * viewDirLocal.y + z_axis * viewDirLocal.z;
-        eye_pos = look_target + viewDirWorld * look_distance;
+        vec3 viewDirWorld = frame.FromLocal(viewDirLocal);
+        eye_pos = look_target + viewDirLocal * look_distance;
 
-        view_mat = glm::lookAt(eye_pos, look_target, glm::vec3{0, 1, 0});
+        view_mat = glm::lookAtLH(eye_pos, look_target, glm::vec3{0, 1, 0});
+    }
+
+    void zoom(float scrollDir)
+    {
+        constexpr float zoomStep = 0.5f;
+        if (scrollDir > 0) {
+            if (look_distance - zoomStep > EPS_F) {
+                look_distance -= zoomStep;
+            }
+        } else if (scrollDir < 0) {
+            look_distance += zoomStep;
+        }
+        auto dir = glm::normalize(eye_pos - look_target);
+        eye_pos = look_target + dir * look_distance;
+
+        view_mat = glm::lookAtLH(eye_pos, look_target, glm::vec3{0, 1, 0});
     }
 };
 

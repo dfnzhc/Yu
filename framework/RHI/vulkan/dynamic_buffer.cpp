@@ -5,6 +5,7 @@
 #include "dynamic_buffer.hpp"
 #include "error.hpp"
 #include <San/utils/math_utils.hpp>
+#include <common/math_utils.hpp>
 #include "initializers.hpp"
 
 namespace yu::vk {
@@ -13,7 +14,7 @@ void DynamicBuffer::create(const VulkanDevice& device, uint32_t numberOfFrames, 
 {
     device_ = &device;
 
-    total_size_ = San::AlignUp(totalSize, 256u);
+    total_size_ = AlignUp(totalSize, 256u);
 
     mem_.create(numberOfFrames, total_size_);
 
@@ -88,7 +89,7 @@ void DynamicBuffer::destroy()
 
 bool DynamicBuffer::allocConstantBuffer(uint32_t size, void** data, VkDescriptorBufferInfo& descOut)
 {
-    size = San::AlignUp(size, 256u);
+    size = AlignUp(size, 256u);
 
     // 获取分配内存的起始偏移
     uint32_t offset;

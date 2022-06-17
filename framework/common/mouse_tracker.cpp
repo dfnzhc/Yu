@@ -54,7 +54,13 @@ void MouseTracker::updateCamera()
     pitch += dy * rotSpeed;
     pitch = std::max(-glm::half_pi<float>() + EPS_F, std::min(pitch, glm::half_pi<float>() - EPS_F));
 
-    camera_->updateOrbit(yaw, pitch, 0);
+    camera_->updateOrbit(yaw, pitch);
+    
+}
+
+void MouseTracker::zoom(float dir)
+{
+    camera_->zoom(dir);
 }
 
 } // namespace yu
