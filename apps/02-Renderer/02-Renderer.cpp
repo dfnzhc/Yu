@@ -38,18 +38,21 @@ public:
                                                                         &descriptor_set_);
         constant_buffer_.setDescriptorSet(0, sizeof(glm::mat4) * 2, descriptor_set_);
 
+        pipeline_builder_.create(device);
+        pipeline_builder_.setShader({"01.5_shader_base_camera.vert", "01_shader_base.frag"});
+        
         // 创建流水线
         pipeline_.create(device,
                          swapChain->getRenderPass(),
-                         {"01.5_shader_base_camera.vert", "01_shader_base.frag"},
-                         descriptor_set_layout_);
+                         descriptor_set_layout_, pipeline_builder_);
     }
 
     void destroy() override
     {
         // 释放流水线
         pipeline_.destroy();
-
+        pipeline_builder_.destroy();
+        
         // 释放描述符布局
         descriptor_heap_.freeDescriptor(descriptor_set_);
         vkDestroyDescriptorSetLayout(device_->getHandle(), descriptor_set_layout_, nullptr);
@@ -136,6 +139,7 @@ public:
 
 private:
     VulkanPipeline pipeline_;
+    PipelineBuilder pipeline_builder_;
 
     VkDescriptorSet descriptor_set_{};
     VkDescriptorSetLayout descriptor_set_layout_{};

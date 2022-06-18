@@ -39,6 +39,10 @@ int main()
 
         // 4. 创建流水线
         VulkanPipeline pipeline;
+        PipelineBuilder pipelineBuilder;
+        
+        pipelineBuilder.create(device);
+        pipelineBuilder.setShader({"01_shader_base.vert", "01_shader_base.frag"});
 
         // 4.1 创建描述符布局（对着色器资源绑定的描述）
         VkDescriptorSetLayout descriptorSetLayout{};
@@ -47,7 +51,7 @@ int main()
         VK_CHECK(vkCreateDescriptorSetLayout(device.getHandle(), &descriptorLayout, nullptr, &descriptorSetLayout));
 
         // 4.2 创建流水线
-        pipeline.create(device, swapChain.getRenderPass(), {"01_shader_base.vert", "01_shader_base.frag"}, descriptorSetLayout);
+        pipeline.create(device, swapChain.getRenderPass(), descriptorSetLayout, pipelineBuilder);
 
         // 5.1 创建命令列表
         CommandList cmdList;
@@ -144,6 +148,7 @@ int main()
 
         // 4.3 释放流水线
         pipeline.destroy();
+        pipelineBuilder.destroy();
 
         // 4.4 释放描述符布局
         vkDestroyDescriptorSetLayout(device.getHandle(), descriptorSetLayout, nullptr);
