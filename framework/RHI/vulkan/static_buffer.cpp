@@ -14,7 +14,7 @@ void StaticBuffer::create(const VulkanDevice& device, uint32_t totalSize, bool b
     device_ = &device;
     total_size_ = totalSize;
 
-    use_staging_buffer_ = bUseStaging;
+    use_video_buffer_ = bUseStaging;
 
     // 在系统上创建缓冲区，绑定并进行映射
     {
@@ -75,7 +75,7 @@ void StaticBuffer::create(const VulkanDevice& device, uint32_t totalSize, bool b
 #endif
     }
 
-    // 在设备上创建用于暂存的内存
+    // 创建显存上的缓冲区，前面创建的缓冲区成为暂存缓冲区
     if (bUseStaging) {
 #ifdef USE_VMA
         auto bufferInfo = bufferCreateInfo();
@@ -91,8 +91,8 @@ void StaticBuffer::create(const VulkanDevice& device, uint32_t totalSize, bool b
         VK_CHECK(vmaCreateBuffer(device.getAllocator(),
                                  &bufferInfo,
                                  &allocInfo,
-                                 &staging_buffer_,
-                                 &staging_allocation_,
+                                 &video_buffer_,
+                                 &video_allocation_,
                                  nullptr));
 #else
         auto buf_info = bufferCreateInfo();
@@ -105,11 +105,11 @@ void StaticBuffer::create(const VulkanDevice& device, uint32_t totalSize, bool b
         buf_info.pQueueFamilyIndices = nullptr;
         buf_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         buf_info.flags = 0;
-        VK_CHECK(vkCreateBuffer(device.getHandle(), &buf_info, nullptr, &staging_buffer_));
+        VK_CHECK(vkCreateBuffer(device.getHandle(), &buf_info, nullptr, &video_buffer_));
 
         // allocate the buffer in VIDEO memory
         VkMemoryRequirements mem_reqs;
-        vkGetBufferMemoryRequirements(device.getHandle(), staging_buffer_, &mem_reqs);
+        vkGetBufferMemoryRequirements(device.getHandle(), video_buffer_, &mem_reqs);
 
         VkMemoryAllocateInfo alloc_info = {};
         alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -122,25 +122,24 @@ void StaticBuffer::create(const VulkanDevice& device, uint32_t totalSize, bool b
                                                            &alloc_info.memoryTypeIndex);
         assert(pass && "No mappable, coherent memory");
 
-        VK_CHECK(vkAllocateMemory(device.getHandle(), &alloc_info, nullptr, &staging_memory_));
+        VK_CHECK(vkAllocateMemory(device.getHandle(), &alloc_info, nullptr, &video_memory_));
 
         // bind buffer
-        VK_CHECK(vkBindBufferMemory(device.getHandle(), staging_buffer_, staging_memory_, 0));
+        VK_CHECK(vkBindBufferMemory(device.getHandle(), video_buffer_, video_memory_, 0));
 #endif
     }
 }
 
 void StaticBuffer::destroy()
 {
-    if (use_staging_buffer_) {
+    if (use_video_buffer_) {
 #ifdef USE_VMA
-        vmaDestroyBuffer(device_->getAllocator(), staging_buffer_, staging_allocation_);
+        vmaDestroyBuffer(device_->getAllocator(), video_buffer_, video_allocation_);
 #else
-        vkFreeMemory(device_->getHandle(), staging_memory_, nullptr);
-        vkDestroyBuffer(device_->getHandle(), staging_buffer_, nullptr);
+        vkFreeMemory(device_->getHandle(), video_memory_, nullptr);
+        vkDestroyBuffer(device_->getHandle(), video_buffer_, nullptr);
 #endif
-
-        staging_buffer_ = VK_NULL_HANDLE;
+        video_buffer_ = VK_NULL_HANDLE;
     }
 
     if (buffer_ != VK_NULL_HANDLE) {
@@ -168,7 +167,7 @@ bool StaticBuffer::allocBuffer(uint32_t numberOfElements,
 
     *pData = (void*) (data_ + memory_offset_);
 
-    pDesc->buffer = use_staging_buffer_ ? staging_buffer_ : buffer_;
+    pDesc->buffer = use_video_buffer_ ? video_buffer_ : buffer_;
     pDesc->offset = memory_offset_;
     pDesc->range = size;
 
@@ -193,7 +192,7 @@ bool StaticBuffer::allocBuffer(uint32_t numberOfElements,
 
 void StaticBuffer::uploadData(VkCommandBuffer cmdBuf)
 {
-    if (!use_staging_buffer_)
+    if (!use_video_buffer_)
         return;
 
     VkBufferCopy region;
@@ -201,12 +200,12 @@ void StaticBuffer::uploadData(VkCommandBuffer cmdBuf)
     region.dstOffset = 0;
     region.size = total_size_;
 
-    vkCmdCopyBuffer(cmdBuf, buffer_, staging_buffer_, 1, &region);
+    vkCmdCopyBuffer(cmdBuf, buffer_, video_buffer_, 1, &region);
 }
 
 void StaticBuffer::freeUploadHeap()
 {
-    if (!use_staging_buffer_ || buffer_ == VK_NULL_HANDLE)
+    if (!use_video_buffer_ || buffer_ == VK_NULL_HANDLE)
         return;
 
 #ifdef USE_VMA
@@ -215,8 +214,8 @@ void StaticBuffer::freeUploadHeap()
 #else
     //release upload heap
     vkUnmapMemory(device_->getHandle(), device_memory_);
-    vkFreeMemory(device_->getHandle(), device_memory_, NULL);
-    vkDestroyBuffer(device_->getHandle(), buffer_, NULL);
+    vkFreeMemory(device_->getHandle(), device_memory_, nullptr);
+    vkDestroyBuffer(device_->getHandle(), buffer_, nullptr);
     device_memory_ = VK_NULL_HANDLE;
 #endif
     buffer_ = VK_NULL_HANDLE;

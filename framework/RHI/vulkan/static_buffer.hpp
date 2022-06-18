@@ -40,16 +40,16 @@ private:
     uint32_t total_size_ = 0;
 
     VkBuffer buffer_{};
-    VkBuffer staging_buffer_{};
+    VkBuffer video_buffer_{};
 
     std::mutex mutex_{};
-    bool use_staging_buffer_ = true;
+    bool use_video_buffer_ = true;
 
 #ifdef USE_VMA
     VmaAllocation buffer_allocation_{};
-    VmaAllocation staging_allocation_{};
+    VmaAllocation video_allocation_{};
     VkDeviceMemory device_memory_{};
-    VkDeviceMemory staging_memory_{};
+    VkDeviceMemory video_memory_{};
 #else
 #endif
 };
