@@ -31,7 +31,7 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
 
     // 创建一个顶点缓冲区，用于上传顶点、索引数据
     const uint32_t vertexMemSize = (1 * 128) * 1024 * 1024;
-    vertex_buffer_.create(device, vertexMemSize, true, "VertexData");
+    vertex_buffer_.create(device, vertexMemSize, false, "VertexData");
 }
 
 void Renderer::destroy()
