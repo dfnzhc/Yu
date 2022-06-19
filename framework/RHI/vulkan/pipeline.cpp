@@ -92,7 +92,7 @@ void VulkanPipeline::draw(VkCommandBuffer cmdBuffer,
         LOG_WARN("Pipeline is not valid.");
         return;
     }
-    
+
     if (!pVertexBuffer) {
         LOG_ERROR("Vertex buffer is invalid.")
     }
@@ -116,7 +116,7 @@ void VulkanPipeline::draw(VkCommandBuffer cmdBuffer,
                                 numUniformOffsets,
                                 &uniformOffset);
     }
-    
+
     vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &pVertexBuffer->buffer, &pVertexBuffer->offset);
 
     // 绑定流水线
@@ -124,6 +124,52 @@ void VulkanPipeline::draw(VkCommandBuffer cmdBuffer,
 
     // 绘制命令
     vkCmdDraw(cmdBuffer, vertexCount, 1, 0, 0);
+}
+
+void VulkanPipeline::drawIndexed(VkCommandBuffer cmdBuffer,
+                                 uint32_t indicesCount,
+                                 VkDescriptorBufferInfo* pVertexBuffer,
+                                 VkDescriptorBufferInfo* pIndexBuffer,
+                                 VkDescriptorBufferInfo* pConstantBuffer,
+                                 VkDescriptorSet descriptorSet)
+{
+    if (pipeline_ == VK_NULL_HANDLE) {
+        LOG_WARN("Pipeline is not valid.");
+        return;
+    }
+
+    if (!pVertexBuffer) {
+        LOG_ERROR("Vertex buffer is invalid.")
+    }
+
+    // 设置绑定的常量缓冲区偏移
+    int numUniformOffsets = 0;
+    uint32_t uniformOffset = 0;
+    if (pConstantBuffer != nullptr && pConstantBuffer->buffer != nullptr) {
+        numUniformOffsets = 1;
+        uniformOffset = static_cast<uint32_t>(pConstantBuffer->offset);
+    }
+
+    // 绑定描述符集
+    if (descriptorSet != nullptr) {
+        vkCmdBindDescriptorSets(cmdBuffer,
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                pipeline_layout_,
+                                0,
+                                1,
+                                &descriptorSet,
+                                numUniformOffsets,
+                                &uniformOffset);
+    }
+
+    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &pVertexBuffer->buffer, &pVertexBuffer->offset);
+    vkCmdBindIndexBuffer(cmdBuffer, pIndexBuffer->buffer, pIndexBuffer->offset, VK_INDEX_TYPE_UINT16);
+
+    // 绑定流水线
+    vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
+
+    // 绘制命令
+    vkCmdDrawIndexed(cmdBuffer, indicesCount, 1, 0, 0, 0);
 }
 
 } // yu::vk

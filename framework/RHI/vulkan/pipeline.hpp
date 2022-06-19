@@ -17,7 +17,7 @@ public:
                 VkDescriptorSetLayout descriptorSetLayout,
                 PipelineBuilder& pipelineBuilder);
     void destroy();
-    
+
     [[deprecated("Hard code vertices in shader")]]
     void draw(VkCommandBuffer cmdBuffer,
               VkDescriptorBufferInfo* pConstantBuffer = nullptr,
@@ -28,6 +28,13 @@ public:
               VkDescriptorBufferInfo* pVertexBuffer,
               VkDescriptorBufferInfo* pConstantBuffer = nullptr,
               VkDescriptorSet descriptorSet = nullptr);
+
+    void drawIndexed(VkCommandBuffer cmdBuffer,
+                     uint32_t indicesCount,
+                     VkDescriptorBufferInfo* pVertexBuffer,
+                     VkDescriptorBufferInfo* pIndexBuffer,
+                     VkDescriptorBufferInfo* pConstantBuffer = nullptr,
+                     VkDescriptorSet descriptorSet = nullptr);
 private:
     const VulkanDevice* device_ = nullptr;
 
