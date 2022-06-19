@@ -27,7 +27,7 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
     const uint32_t srvDescriptorCount = 8000;
     const uint32_t samplerDescriptorCount = 20;
     const uint32_t uavDescriptorCount = 10;
-    descriptor_heap_.create(device, cbvDescriptorCount, srvDescriptorCount, samplerDescriptorCount, uavDescriptorCount);
+    descriptor_pool_.create(device, cbvDescriptorCount, srvDescriptorCount, samplerDescriptorCount, uavDescriptorCount);
 
     // 创建一个顶点缓冲区，用于上传顶点、索引数据
     const uint32_t vertexMemSize = (1 * 128) * 1024 * 1024;
@@ -38,7 +38,7 @@ void Renderer::destroy()
 {
     command_list_.destroy();
     constant_buffer_.destroy();
-    descriptor_heap_.destroy();
+    descriptor_pool_.destroy();
     vertex_buffer_.destroy();
 }
 

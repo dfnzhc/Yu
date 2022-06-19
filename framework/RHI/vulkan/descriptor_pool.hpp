@@ -7,7 +7,7 @@
 #include "device.hpp"
 namespace yu::vk {
 
-class DescriptorHeap
+class DescriptorPool
 {
 public:
     void create(const VulkanDevice& device,

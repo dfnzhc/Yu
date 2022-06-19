@@ -72,7 +72,7 @@ public:
             VK_SHADER_STAGE_VERTEX_BIT,
             0);
 
-        descriptor_heap_.createDescriptorSetLayoutAndAllocDescriptorSet(&layoutBinding,
+        descriptor_pool_.createDescriptorSetLayoutAndAllocDescriptorSet(&layoutBinding,
                                                                         &descriptor_set_layout_,
                                                                         &descriptor_set_);
         constant_buffer_.setDescriptorSet(0, sizeof(glm::mat4) * 2, descriptor_set_);
@@ -103,7 +103,7 @@ public:
         pipeline_builder_.destroy();
 
         // 释放描述符布局
-        descriptor_heap_.freeDescriptor(descriptor_set_);
+        descriptor_pool_.freeDescriptor(descriptor_set_);
         vkDestroyDescriptorSetLayout(device_->getHandle(), descriptor_set_layout_, nullptr);
 
         Renderer::destroy();

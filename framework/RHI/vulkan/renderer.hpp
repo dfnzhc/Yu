@@ -8,7 +8,7 @@
 #include "swap_chain.hpp"
 #include "command.hpp"
 #include "dynamic_buffer.hpp"
-#include "descriptor_heap.hpp"
+#include "descriptor_pool.hpp"
 #include "static_buffer.hpp"
 
 #include <common/mouse_tracker.hpp>
@@ -39,7 +39,7 @@ protected:
 
     CommandList command_list_;
     DynamicBuffer constant_buffer_;
-    DescriptorHeap descriptor_heap_;
+    DescriptorPool descriptor_pool_;
     StaticBuffer vertex_buffer_;
 
     VkRect2D rect_scissor_{};

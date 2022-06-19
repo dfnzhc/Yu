@@ -2,13 +2,13 @@
 // Created by 秋鱼 on 2022/6/14.
 //
 
-#include "descriptor_heap.hpp"
+#include "descriptor_pool.hpp"
 #include "error.hpp"
 #include "initializers.hpp"
 
 namespace yu::vk {
 
-void DescriptorHeap::create(const VulkanDevice& device,
+void DescriptorPool::create(const VulkanDevice& device,
                             uint32_t cbvDescriptorCount,
                             uint32_t srvDescriptorCount,
                             uint32_t samplerDescriptorCount,
@@ -38,7 +38,7 @@ void DescriptorHeap::create(const VulkanDevice& device,
     VK_CHECK(vkCreateDescriptorPool(device_->getHandle(), &descriptor_pool, nullptr, &descriptor_pool_));
 }
 
-void DescriptorHeap::destroy()
+void DescriptorPool::destroy()
 {
     if (descriptor_pool_ != VK_NULL_HANDLE) {
         vkDestroyDescriptorPool(device_->getHandle(), descriptor_pool_, nullptr);
@@ -46,7 +46,7 @@ void DescriptorHeap::destroy()
     }
 }
 
-void DescriptorHeap::allocDescriptor(VkDescriptorSetLayout descriptorLayout, VkDescriptorSet* pDescriptorSet)
+void DescriptorPool::allocDescriptor(VkDescriptorSetLayout descriptorLayout, VkDescriptorSet* pDescriptorSet)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -56,7 +56,7 @@ void DescriptorHeap::allocDescriptor(VkDescriptorSetLayout descriptorLayout, VkD
     allocated_descriptor_count_ += 1;
 }
 
-void DescriptorHeap::allocDescriptor(int size, const VkSampler* pSamplers, VkDescriptorSetLayout* pDescSetLayout, VkDescriptorSet* pDescriptorSet)
+void DescriptorPool::allocDescriptor(int size, const VkSampler* pSamplers, VkDescriptorSetLayout* pDescSetLayout, VkDescriptorSet* pDescriptorSet)
 {
 
     std::vector<VkDescriptorSetLayoutBinding> layoutBindings(size);
@@ -71,7 +71,7 @@ void DescriptorHeap::allocDescriptor(int size, const VkSampler* pSamplers, VkDes
     createDescriptorSetLayoutAndAllocDescriptorSet(&layoutBindings, pDescSetLayout, pDescriptorSet);
 }
 
-void DescriptorHeap::allocDescriptor(std::vector<uint32_t>& descriptorCounts,
+void DescriptorPool::allocDescriptor(std::vector<uint32_t>& descriptorCounts,
                                      const VkSampler* pSamplers,
                                      VkDescriptorSetLayout* pDescSetLayout,
                                      VkDescriptorSet* pDescriptorSet)
@@ -88,7 +88,7 @@ void DescriptorHeap::allocDescriptor(std::vector<uint32_t>& descriptorCounts,
     createDescriptorSetLayoutAndAllocDescriptorSet(&layoutBindings, pDescSetLayout, pDescriptorSet);
 }
 
-void DescriptorHeap::createDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding>* pDescriptorLayoutBinding,
+void DescriptorPool::createDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding>* pDescriptorLayoutBinding,
                                                VkDescriptorSetLayout* pDescSetLayout)
 {
     auto descriptor_layout = descriptorSetLayoutCreateInfo(pDescriptorLayoutBinding->data(),
@@ -97,7 +97,7 @@ void DescriptorHeap::createDescriptorSetLayout(std::vector<VkDescriptorSetLayout
     VK_CHECK(vkCreateDescriptorSetLayout(device_->getHandle(), &descriptor_layout, nullptr, pDescSetLayout));
 }
 
-void DescriptorHeap::createDescriptorSetLayoutAndAllocDescriptorSet(std::vector<VkDescriptorSetLayoutBinding>* pDescriptorLayoutBinding,
+void DescriptorPool::createDescriptorSetLayoutAndAllocDescriptorSet(std::vector<VkDescriptorSetLayoutBinding>* pDescriptorLayoutBinding,
                                                                     VkDescriptorSetLayout* pDescSetLayout,
                                                                     VkDescriptorSet* pDescriptorSet)
 {
@@ -109,7 +109,7 @@ void DescriptorHeap::createDescriptorSetLayoutAndAllocDescriptorSet(std::vector<
     return allocDescriptor(*pDescSetLayout, pDescriptorSet);
 }
 
-void DescriptorHeap::freeDescriptor(VkDescriptorSet descriptorSet)
+void DescriptorPool::freeDescriptor(VkDescriptorSet descriptorSet)
 {
     allocated_descriptor_count_--;
     vkFreeDescriptorSets(device_->getHandle(), descriptor_pool_, 1, &descriptorSet);
