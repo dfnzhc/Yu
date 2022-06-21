@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace yu::vk {
+namespace yu {
 
 constexpr inline std::string AssetPath()
 {
@@ -21,4 +21,14 @@ inline std::string GetSpvShaderFile(const std::string& filename)
     return ShaderFilePath() + "/spv/" + filename + ".spv";
 }
 
-} // namespace yu::vk
+constexpr inline std::string TextureFilePath()
+{
+    return AssetPath() + "/textures";
+}
+
+inline std::string GetTextureFile(const std::string& filename)
+{
+    return TextureFilePath() + "/" + filename;
+}
+
+} // namespace yu
