@@ -44,7 +44,7 @@ private:
     uint8_t* data_end = nullptr;      // ending position of upload heap 
 
     // 用于同步的计数器
-    San::Sync allocating_, flushing_;
+    San::Sync allocating_{}, flushing_{};
 
     std::mutex mutex_{};
 

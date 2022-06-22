@@ -12,6 +12,9 @@ namespace yu::vk {
 void UploadHeap::create(const VulkanDevice& device, uint64_t totalSize)
 {
     device_ = &device;
+    
+    allocating_.reset();
+    flushing_.reset();
 
     // 创建命令池和命令缓冲区
     {
@@ -55,7 +58,7 @@ void UploadHeap::create(const VulkanDevice& device, uint64_t totalSize)
                              0,
                              (void**) (&data_begin)));
         data_curr = data_begin;
-        data_begin = data_begin + memReqs.size;
+        data_end = data_begin + memReqs.size;
     }
 
     // 创建用于同步的 fence
@@ -91,7 +94,7 @@ uint8_t* UploadHeap::alloc(uint64_t size, uint64_t align)
     {
         std::unique_lock lock{mutex_};
 
-        assert(size < static_cast<uint64_t>(std::distance(data_begin, data_end)));
+        assert(size < static_cast<uint64_t>(data_begin - data_end));
 
         data_curr = reinterpret_cast<uint8_t*>(AlignUp(reinterpret_cast<uint64_t>(data_curr), align));
         size = AlignUp(size, align);
@@ -153,7 +156,7 @@ void UploadHeap::addImagePostBarrier(VkImageMemoryBarrier imageMemBarrier)
 void UploadHeap::flush()
 {
     auto range = mappedMemoryRange();
-    range.size = std::distance(data_curr, data_begin);
+    range.size = data_curr - data_begin;
     range.memory = device_memory_;
 
     VK_CHECK(vkFlushMappedMemoryRanges(device_->getHandle(), 1, &range));
@@ -176,7 +179,7 @@ void UploadHeap::flushAndFinish(bool bDoBarriers)
     // 上传图片
     // 实施前置的 barrier
     if (!pre_barriers_.empty()) {
-        vkCmdPipelineBarrier(getCommandBuffer(),
+        vkCmdPipelineBarrier(command_buffer_,
                              VK_PIPELINE_STAGE_HOST_BIT,
                              VK_PIPELINE_STAGE_TRANSFER_BIT,
                              0,
@@ -190,8 +193,8 @@ void UploadHeap::flushAndFinish(bool bDoBarriers)
     }
 
     for (auto& c : image_copies_) {
-        vkCmdCopyBufferToImage(getCommandBuffer(),
-                               getBuffer(),
+        vkCmdCopyBufferToImage(command_buffer_,
+                               buffer_,
                                c.image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                1,
@@ -201,7 +204,7 @@ void UploadHeap::flushAndFinish(bool bDoBarriers)
 
     // 实施后置的 barrier
     if (!post_barriers_.empty()) {
-        vkCmdPipelineBarrier(getCommandBuffer(),
+        vkCmdPipelineBarrier(command_buffer_,
                              VK_PIPELINE_STAGE_TRANSFER_BIT,
                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                              0,
