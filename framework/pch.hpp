@@ -25,8 +25,9 @@
 #include <wrl.h>
 #include <limits>
 #include <set>
-#include <assert.h>
+#include <cassert>
 #include <concepts>
+#include <numbers>
 
 #ifdef YU_IN_WINDOWS
 #include <Windows.h>
