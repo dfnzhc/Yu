@@ -35,6 +35,7 @@ if (YU_BUILD_APPS)
     add_subdirectory(apps)
 endif ()
 
+set(YU_BUILD_TESTS OFF)
 if (YU_BUILD_TESTS)
     # add tests
     add_subdirectory(tests)

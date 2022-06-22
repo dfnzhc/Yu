@@ -26,3 +26,9 @@ find_package(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 add_library(vma INTERFACE)
 target_link_libraries(vma INTERFACE unofficial::vulkan-memory-allocator::vulkan-memory-allocator)
 set_target_properties(vma PROPERTIES FOLDER "ThirdParty")
+
+# stb
+find_path(STB_INCLUDE_DIRS "stb.h")
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE ${STB_INCLUDE_DIRS})
+
