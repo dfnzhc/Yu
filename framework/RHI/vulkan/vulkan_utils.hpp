@@ -11,6 +11,7 @@ namespace yu::vk {
 VkShaderStageFlagBits GetShaderType(std::string_view fileName);
 VkShaderModule LoadShader(std::string_view fileName, VkDevice device);
 uint32_t SizeOfFormat(VkFormat format);
+uint32_t BitSizeOfFormat(VkFormat format);
 
 template<typename T>
 requires std::same_as<decltype(T::sType), VkStructureType>

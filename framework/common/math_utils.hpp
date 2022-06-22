@@ -20,11 +20,20 @@ namespace yu {
 
 constexpr double EPS = std::numeric_limits<double>::epsilon();
 constexpr float EPS_F = std::numeric_limits<float>::epsilon();
+constexpr float PI_F = glm::pi<float>();
+constexpr double PI = glm::pi<double>();
 
 template<typename T>
 inline T AlignUp(T val, T alignment)
 {
     return (val + alignment - static_cast<T>(1)) & ~(alignment - static_cast<T>(1));
+}
+
+template<typename T>
+requires std::is_arithmetic_v<T>
+inline bool IsPowerOfTwo(T x)
+{
+    return (x != 0) && ((x & (x - 1)) == 0);
 }
 
 /**

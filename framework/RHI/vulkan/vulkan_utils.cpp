@@ -7,8 +7,6 @@
 #include "vulkan_utils.hpp"
 #include "error.hpp"
 
-
-
 namespace yu::vk {
 
 VkShaderStageFlagBits GetShaderType(std::string_view fileName)
@@ -78,62 +76,111 @@ VkShaderModule LoadShader(std::string_view fileName, VkDevice device)
 uint32_t SizeOfFormat(VkFormat format)
 {
     switch (format) {
-        case VK_FORMAT_R8_SINT:
-            return 1;//(BYTE)
-        case VK_FORMAT_R8_UINT:
-            return 1;//(UNSIGNED_BYTE)1
-        case VK_FORMAT_R16_SINT:
-            return 2;//(SHORT)2
-        case VK_FORMAT_R16_UINT:
-            return 2;//(UNSIGNED_SHORT)2
-        case VK_FORMAT_R32_SINT:
-            return 4;//(SIGNED_INT)4
-        case VK_FORMAT_R32_UINT:
-            return 4;//(UNSIGNED_INT)4
-        case VK_FORMAT_R32_SFLOAT:
-            return 4;//(FLOAT)
-
-        case VK_FORMAT_R8G8_SINT:
-            return 2 * 1;//(BYTE)
-        case VK_FORMAT_R8G8_UINT:
-            return 2 * 1;//(UNSIGNED_BYTE)1
-        case VK_FORMAT_R16G16_SINT:
-            return 2 * 2;//(SHORT)2
-        case VK_FORMAT_R16G16_UINT:
-            return 2 * 2; // (UNSIGNED_SHORT)2
-        case VK_FORMAT_R32G32_SINT:
-            return 2 * 4;//(SIGNED_INT)4
-        case VK_FORMAT_R32G32_UINT:
-            return 2 * 4;//(UNSIGNED_INT)4
-        case VK_FORMAT_R32G32_SFLOAT:
-            return 2 * 4;//(FLOAT)
-
         case VK_FORMAT_UNDEFINED:
-            return 0;//(BYTE) (UNSIGNED_BYTE) (SHORT) (UNSIGNED_SHORT)
-        case VK_FORMAT_R32G32B32_SINT:
-            return 3 * 4;//(SIGNED_INT)4
-        case VK_FORMAT_R32G32B32_UINT:
-            return 3 * 4;//(UNSIGNED_INT)4
-        case VK_FORMAT_R32G32B32_SFLOAT:
-            return 3 * 4;//(FLOAT)
-
-        case VK_FORMAT_R8G8B8A8_SINT:
-            return 4 * 1;//(BYTE)
+            return 0;
+        case VK_FORMAT_R8_UNORM:
+        case VK_FORMAT_R8_SNORM:
+        case VK_FORMAT_R8_UINT:
+        case VK_FORMAT_R8_SINT:
+        case VK_FORMAT_R8_SRGB:
+            return 1;
+            
+        case VK_FORMAT_R8G8_UNORM:
+        case VK_FORMAT_R8G8_SNORM:
+        case VK_FORMAT_R8G8_UINT:
+        case VK_FORMAT_R8G8_SINT:
+        case VK_FORMAT_R8G8_SRGB:
+        case VK_FORMAT_R16_UNORM:
+        case VK_FORMAT_R16_SNORM:
+        case VK_FORMAT_R16_UINT:
+        case VK_FORMAT_R16_SINT:
+        case VK_FORMAT_R16_SFLOAT:
+            return 2;
+            
+        case VK_FORMAT_R8G8B8_UNORM:
+        case VK_FORMAT_R8G8B8_SNORM:
+        case VK_FORMAT_R8G8B8_UINT:
+        case VK_FORMAT_R8G8B8_SINT:
+        case VK_FORMAT_R8G8B8_SRGB:
+        case VK_FORMAT_B8G8R8_UNORM:
+        case VK_FORMAT_B8G8R8_SNORM:
+        case VK_FORMAT_B8G8R8_UINT:
+        case VK_FORMAT_B8G8R8_SINT:
+        case VK_FORMAT_B8G8R8_SRGB:
+            return 3;
+            
+        case VK_FORMAT_R8G8B8A8_UNORM:
+        case VK_FORMAT_R8G8B8A8_SNORM:
         case VK_FORMAT_R8G8B8A8_UINT:
-            return 4 * 1;//(UNSIGNED_BYTE)1
-        case VK_FORMAT_R16G16B16A16_SINT:
-            return 4 * 2;//(SHORT)2
+        case VK_FORMAT_R8G8B8A8_SINT:
+        case VK_FORMAT_R8G8B8A8_SRGB:
+        case VK_FORMAT_B8G8R8A8_UNORM:
+        case VK_FORMAT_B8G8R8A8_SNORM:
+        case VK_FORMAT_B8G8R8A8_UINT:
+        case VK_FORMAT_B8G8R8A8_SINT:
+        case VK_FORMAT_B8G8R8A8_SRGB:
+        case VK_FORMAT_R16G16_UNORM:
+        case VK_FORMAT_R16G16_SNORM:
+        case VK_FORMAT_R16G16_UINT:
+        case VK_FORMAT_R16G16_SINT:
+        case VK_FORMAT_R16G16_SFLOAT:
+        case VK_FORMAT_R32_UINT:
+        case VK_FORMAT_R32_SINT:
+        case VK_FORMAT_R32_SFLOAT:
+            return 4;
+            
+        case VK_FORMAT_R16G16B16_UNORM:
+        case VK_FORMAT_R16G16B16_SNORM:
+        case VK_FORMAT_R16G16B16_UINT:
+        case VK_FORMAT_R16G16B16_SINT:
+        case VK_FORMAT_R16G16B16_SFLOAT:
+            return 6;
+            
+        case VK_FORMAT_R16G16B16A16_UNORM:
+        case VK_FORMAT_R16G16B16A16_SNORM:
         case VK_FORMAT_R16G16B16A16_UINT:
-            return 4 * 2;//(UNSIGNED_SHORT)2
-        case VK_FORMAT_R32G32B32A32_SINT:
-            return 4 * 4;//(SIGNED_INT)4
+        case VK_FORMAT_R16G16B16A16_SINT:
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+        case VK_FORMAT_R32G32_UINT:
+        case VK_FORMAT_R32G32_SINT:
+        case VK_FORMAT_R32G32_SFLOAT:
+        case VK_FORMAT_R64_UINT:
+        case VK_FORMAT_R64_SINT:
+        case VK_FORMAT_R64_SFLOAT:
+            return 8;
+            
+        case VK_FORMAT_R32G32B32_UINT:
+        case VK_FORMAT_R32G32B32_SINT:
+        case VK_FORMAT_R32G32B32_SFLOAT:
+            return 12;
+            
         case VK_FORMAT_R32G32B32A32_UINT:
-            return 4 * 4;//(UNSIGNED_INT)4
+        case VK_FORMAT_R32G32B32A32_SINT:
         case VK_FORMAT_R32G32B32A32_SFLOAT:
-            return 4 * 4;//(FLOAT)
+        case VK_FORMAT_R64G64_UINT:
+        case VK_FORMAT_R64G64_SINT:
+        case VK_FORMAT_R64G64_SFLOAT:
+            return 16;
+            
+        case VK_FORMAT_R64G64B64_UINT:
+        case VK_FORMAT_R64G64B64_SINT:
+        case VK_FORMAT_R64G64B64_SFLOAT:
+            return 24;
+            
+        case VK_FORMAT_R64G64B64A64_UINT:
+        case VK_FORMAT_R64G64B64A64_SINT:
+        case VK_FORMAT_R64G64B64A64_SFLOAT:
+            return 32;
+
+        default:
+            break;
     }
 
     return 0;
+}
+uint32_t BitSizeOfFormat(VkFormat format)
+{
+    return 8 * SizeOfFormat(format);
 }
 
 } // namespace yu::vk
