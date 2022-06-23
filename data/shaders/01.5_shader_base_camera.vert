@@ -16,12 +16,11 @@ vec3 colors[3] = vec3[](
 
 layout (binding = 0) uniform UBO 
 {
-//	mat4 projViewMatrix;
 	mat4 viewMatrix;
 	mat4 projectionMatrix;
 } ubo;
 
 void main() {
-    gl_Position = ubo.projectionMatrix * ubo.viewMatrix * vec4(positions[gl_VertexIndex], 0.0, 1.0);//ubo.projectionMatrix * ubo.viewMatrix * 
+    gl_Position = ubo.projectionMatrix * ubo.viewMatrix * vec4(positions[gl_VertexIndex], 0.0, 1.0);
     fragColor = colors[gl_VertexIndex];
 }
