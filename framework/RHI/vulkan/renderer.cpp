@@ -31,15 +31,22 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
 
     // 创建一个顶点缓冲区，用于上传顶点、索引数据
     const uint32_t vertexMemSize = (1 * 128) * 1024 * 1024;
-    vertex_buffer_.create(device, vertexMemSize, false, "VertexData");
+    vertex_buffer_.create(device, vertexMemSize, true, "VertexData");
+    
+    // 创建上传堆，用于向 GPU 上传资源，例如图片
+    const uint32_t uploadHeapMemSize = 1000 * 1024 * 1024;
+    upload_heap_.create(device, uploadHeapMemSize);
 }
 
 void Renderer::destroy()
 {
+//    async_pool_.flush();
+    
     command_list_.destroy();
     constant_buffer_.destroy();
     descriptor_pool_.destroy();
     vertex_buffer_.destroy();
+    upload_heap_.destory();
 }
 
 void Renderer::createWindowSizeDependency(uint32_t width, uint32_t height)

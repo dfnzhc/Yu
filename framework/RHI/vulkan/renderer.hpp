@@ -10,6 +10,8 @@
 #include "dynamic_buffer.hpp"
 #include "descriptor_pool.hpp"
 #include "static_buffer.hpp"
+#include "async.hpp"
+#include "upload_heap.hpp"
 
 #include <common/mouse_tracker.hpp>
 
@@ -41,13 +43,15 @@ protected:
     DynamicBuffer constant_buffer_;
     DescriptorPool descriptor_pool_;
     StaticBuffer vertex_buffer_;
+    UploadHeap upload_heap_;
 
     VkRect2D rect_scissor_{};
     VkViewport viewport_{};
 
     uint32_t width_{};
     uint32_t height_{};
-
+    
+    San::AsyncPool async_pool_;
 };
 
 } // namespace yu::vk

@@ -207,8 +207,9 @@ Bitmap LoadTextureFormFile(std::string_view filename, bool bGenMipMap)
         LOG_ERROR("Failed to load [{}] texture", filename);
         return {};
     }
-
-    uint32_t imageSize = texWidth * texHeight * texComp;
+    const int comp = 4;
+    
+    uint32_t imageSize = texWidth * texHeight * comp;
     std::vector<uint8_t> data(imageSize);
 
     uint32_t mipLevels = GetMipMapLevels(texWidth, texHeight);
@@ -220,7 +221,7 @@ Bitmap LoadTextureFormFile(std::string_view filename, bool bGenMipMap)
 //        uint32_t mipMapSize = (imageSize * 3) >> 1;
         uint32_t newSize = 0;
         for (uint32_t i = 1; i < mipLevels; i++) {
-            uint32_t mipSize = w * h * texComp;
+            uint32_t mipSize = w * h * comp;
             w >>= 1;
             h >>= 1;
             newSize += mipSize;
@@ -236,9 +237,9 @@ Bitmap LoadTextureFormFile(std::string_view filename, bool bGenMipMap)
     if (bGenMipMap) {
         w = texWidth, h = texHeight;
         for (uint32_t i = 1; i < mipLevels; i++) {
-            dst += w * h * texComp;
+            dst += w * h * comp;
 
-            stbir_resize_uint8(src, w, h, 0, dst, w / 2, h / 2, 0, texComp);
+            stbir_resize_uint8(src, w, h, 0, dst, w / 2, h / 2, 0, comp);
 
             w >>= 1;
             h >>= 1;
@@ -248,7 +249,7 @@ Bitmap LoadTextureFormFile(std::string_view filename, bool bGenMipMap)
 
     Bitmap ret{static_cast<uint32_t>(texWidth),
                static_cast<uint32_t>(texHeight),
-               static_cast<uint32_t>(texComp),
+               static_cast<uint32_t>(comp),
                BitmapFormat::UnsignedByte, data.data(),
                mipLevels,
                bGenMipMap};
@@ -293,7 +294,7 @@ Bitmap LoadHDRTextureFormFile(std::string_view fileName, bool bIsCubemap, bool b
     uint32_t mipLevels = GetMipMapLevels(texWidth, texHeight);
 
     uint32_t w = texWidth, h = texHeight;
-    bGenMipMap = CanTextureGenMipMap(w, h);
+    bGenMipMap = bGenMipMap && CanTextureGenMipMap(w, h);
     if (bGenMipMap) {
         imageSize = 0;
         for (uint32_t i = 1; i < mipLevels; i++) {
