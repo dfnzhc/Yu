@@ -184,7 +184,7 @@ void SwapChain::createWindowSizeDependency(VkSurfaceKHR surface, bool VSync)
     if (bCreate_depth_) {
         createDepthImage(swapchainExtent.width, swapchainExtent.height);
     }
-    
+
     createFrameBuffers(swapchainExtent.width, swapchainExtent.height);
 
     image_index_ = 0;
@@ -226,27 +226,17 @@ void SwapChain::getSurfaceFormat()
                                                   &formatCount,
                                                   surfaceFormats.data()));
 
-    // 如果查询的 surface 格式只有 VK_FORMAT_UNDEFINED,
-    // 那就没有首选的格式，假定使用 VK_FORMAT_B8G8R8A8_UNORM
-    if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED)) {
-        format_ = VK_FORMAT_B8G8R8A8_UNORM;
-        color_space_ = surfaceFormats[0].colorSpace;
-    } else {
-        // 遍历可用的 surface 格式列表，并且检查是否存在 VK_FORMAT_B8G8R8A8_UNORM
-        bool found_B8G8R8A8_UNORM = false;
-        for (auto&& surfaceFormat : surfaceFormats) {
-            if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM) {
-                format_ = surfaceFormat.format;
-                color_space_ = surfaceFormat.colorSpace;
-                found_B8G8R8A8_UNORM = true;
-                break;
-            }
-        }
-
-        // 当 VK_FORMAT_B8G8R8A8_UNORM 不可用时，选择第一个可用的颜色格式
-        if (!found_B8G8R8A8_UNORM) {
-            format_ = surfaceFormats[0].format;
-            color_space_ = surfaceFormats[0].colorSpace;
+    // 首选的格式，假定使用 VK_FORMAT_B8G8R8A8_UNORM
+    // 如果没有，就选用第一个格式
+    format_ = surfaceFormats[0].format;
+    color_space_ = surfaceFormats[0].colorSpace;
+    
+    for (const auto& format : surfaceFormats) {
+        if (format.format == VK_FORMAT_B8G8R8A8_UNORM &&
+            format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            format_ = format.format;
+            color_space_ = format.colorSpace;
+            break;
         }
     }
 }
@@ -321,7 +311,7 @@ void SwapChain::createRenderPass()
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = format_;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;

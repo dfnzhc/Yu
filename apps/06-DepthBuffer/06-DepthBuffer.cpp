@@ -221,7 +221,7 @@ public:
             renderPassInfo.renderArea.extent = {width_, height_};
 
             std::vector<VkClearValue> clearColor(2);
-            clearColor[0].color = {{0.2f, 0.3f, 0.7f, 1.0f}};
+            clearColor[0].color = {0.2f, 0.3f, 0.7f, 1.0f};
             clearColor[1].depthStencil = {1.0f, 0};
             renderPassInfo.clearValueCount = static_cast<uint32_t>(clearColor.size());
             renderPassInfo.pClearValues = clearColor.data();
