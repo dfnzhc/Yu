@@ -121,7 +121,7 @@ void AppBase::initVulkan()
     std::tie(system_info_.GPUName, system_info_.APIVersion) = device_->getProperties().getDeviceInfo();
 
     // 3. 创建交换链
-    swap_chain_ = std::make_unique<SwapChain>(*device_);
+    swap_chain_ = std::make_unique<SwapChain>(*device_, bSwapChain_CreateDepth);
     swap_chain_->createWindowSizeDependency(instance_->getSurface());
 }
 

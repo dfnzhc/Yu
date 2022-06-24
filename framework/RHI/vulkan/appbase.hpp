@@ -38,6 +38,8 @@ protected:
     std::unique_ptr<VulkanInstance> instance_ = nullptr;
     
     std::unique_ptr<VulkanDevice> device_ = nullptr;
+    
+    bool bSwapChain_CreateDepth = false;
     std::unique_ptr<SwapChain> swap_chain_ = nullptr;
     
     std::unique_ptr<yu::MouseTracker> mouse_tracker_ = nullptr;

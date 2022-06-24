@@ -11,7 +11,7 @@ namespace yu::vk {
 class SwapChain
 {
 public:
-    SwapChain(const VulkanDevice& device);
+    SwapChain(const VulkanDevice& device, bool createDepth = false);
     ~SwapChain();
 
     void createWindowSizeDependency(VkSurfaceKHR surface, bool VSync = false);
@@ -37,6 +37,9 @@ public:
 private:
     void getSurfaceFormat();
     void createImageAndRTV();
+    
+    void createDepthImage(uint32_t width, uint32_t height);
+    void destroyDepthImage();
 
     void createRenderPass();
     void destroyRenderPass();
@@ -61,6 +64,11 @@ private:
     std::vector<VkImage> images_;
     std::vector<VkImageView> image_views_;
     std::vector<VkFramebuffer> frame_buffers_;
+    
+    bool bCreate_depth_ = false;
+    VkImage depth_image_;
+    VkImageView depth_image_view_;
+    VkDeviceMemory depth_image_buffer_;
    
     uint32_t current_frame_ = 0;
     uint32_t prev_frame_ = 0;

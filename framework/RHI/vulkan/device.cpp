@@ -8,6 +8,7 @@
 #include "initializers.hpp"
 #include "error.hpp"
 #include "instance.hpp"
+#include "ext_raytracing.hpp"
 
 #ifdef USE_VMA
 #define VMA_IMPLEMENTATION
@@ -100,6 +101,7 @@ void VulkanDevice::setEssentialExtensions()
 {
     CheckFP16DeviceEXT(properties_);
     CheckHDRDeviceEXT(properties_);
+//    CheckRTDeviceEXT(properties_);
 
     properties_.addExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     properties_.addExtension(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);

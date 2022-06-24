@@ -9,7 +9,7 @@
 
 namespace yu::vk {
 
-SwapChain::SwapChain(const VulkanDevice& device) : device_{&device}
+SwapChain::SwapChain(const VulkanDevice& device, bool createDepth) : device_{&device}, bCreate_depth_{createDepth}
 {
     present_queue_ = device_->getPresentQueue();
 
@@ -113,7 +113,10 @@ void SwapChain::createWindowSizeDependency(VkSurfaceKHR surface, bool VSync)
     assert(presentModeCount > 0);
 
     std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface_, &presentModeCount, presentModes.data()));
+    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice,
+                                                       surface_,
+                                                       &presentModeCount,
+                                                       presentModes.data()));
     // 默认使用 VK_PRESENT_MODE_FIFO_KHR 模式
     // 这种模式会等待垂直同步（"v-sync"）
     VkPresentModeKHR swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
@@ -178,6 +181,10 @@ void SwapChain::createWindowSizeDependency(VkSurfaceKHR surface, bool VSync)
     VK_CHECK(vkGetSwapchainImagesKHR(device, swap_chain_, &image_count_, nullptr));
 
     createImageAndRTV();
+    if (bCreate_depth_) {
+        createDepthImage(swapchainExtent.width, swapchainExtent.height);
+    }
+    
     createFrameBuffers(swapchainExtent.width, swapchainExtent.height);
 
     image_index_ = 0;
@@ -186,6 +193,9 @@ void SwapChain::createWindowSizeDependency(VkSurfaceKHR surface, bool VSync)
 void SwapChain::destroyWindowSizeDependency()
 {
     destroyRenderPass();
+    if (bCreate_depth_) {
+        destroyDepthImage();
+    }
     destroyFrameBuffers();
 
     // 摧毁图像视图
@@ -204,11 +214,17 @@ void SwapChain::getSurfaceFormat()
 {
     // 获取 surface 的表面格式
     uint32_t formatCount;
-    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device_->getProperties().physical_device, surface_, &formatCount, nullptr));
+    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device_->getProperties().physical_device,
+                                                  surface_,
+                                                  &formatCount,
+                                                  nullptr));
     assert(formatCount > 0);
 
     std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device_->getProperties().physical_device, surface_, &formatCount, surfaceFormats.data()));
+    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device_->getProperties().physical_device,
+                                                  surface_,
+                                                  &formatCount,
+                                                  surfaceFormats.data()));
 
     // 如果查询的 surface 格式只有 VK_FORMAT_UNDEFINED,
     // 那就没有首选的格式，假定使用 VK_FORMAT_B8G8R8A8_UNORM
@@ -268,6 +284,33 @@ void SwapChain::createImageAndRTV()
     }
 }
 
+void SwapChain::createDepthImage(uint32_t width, uint32_t height)
+{
+    auto depthFormat = GetDepthFormat(
+        *device_,
+        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+    CreateImage(*device_,
+                width,
+                height,
+                depthFormat,
+                VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                depth_image_,
+                depth_image_buffer_);
+
+    CreateImageView(device_->getHandle(), depth_image_, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, depth_image_view_);
+}
+void SwapChain::destroyDepthImage()
+{
+    vkDestroyImageView(device_->getHandle(), depth_image_view_, nullptr);
+    vkDestroyImage(device_->getHandle(), depth_image_, nullptr);
+    vkFreeMemory(device_->getHandle(), depth_image_buffer_, nullptr);
+}
+
 void SwapChain::createRenderPass()
 {
     VkSurfaceFormatKHR surfaceFormat;
@@ -275,51 +318,36 @@ void SwapChain::createRenderPass()
     surfaceFormat.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
     // color attachment
-    VkAttachmentDescription attachments[1];
-    attachments[0].format = format_;
-    attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-    attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    attachments[0].flags = 0;
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = format_;
+    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-    VkAttachmentReference colorReference = {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+    VkAttachmentDescription* pDepthAttachment = nullptr;
+    VkAttachmentDescription depthAttachment{};
+    if (bCreate_depth_) {
+        pDepthAttachment = &depthAttachment;
 
-    VkSubpassDescription subpassDescription = {};
-    subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpassDescription.colorAttachmentCount = 1;
-    subpassDescription.pColorAttachments = &colorReference;
-    subpassDescription.pDepthStencilAttachment = nullptr;
-    subpassDescription.inputAttachmentCount = 0;
-    subpassDescription.pInputAttachments = nullptr;
-    subpassDescription.preserveAttachmentCount = 0;
-    subpassDescription.pPreserveAttachments = nullptr;
-    subpassDescription.pResolveAttachments = nullptr;
+        depthAttachment.format = GetDepthFormat(
+            *device_,
+            {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    }
 
-    // Subpass dependencies for layout transitions
-    std::array<VkSubpassDependency, 1> dependencies{};
-
-    dependencies[0].dependencyFlags = 0;
-    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependencies[0].dstSubpass = 0;
-    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependencies[0].srcAccessMask = 0;
-    dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-    auto renderPass_info = renderPassCreateInfo();
-    renderPass_info.pNext = nullptr;
-    renderPass_info.attachmentCount = 1;
-    renderPass_info.pAttachments = attachments;
-    renderPass_info.subpassCount = 1;
-    renderPass_info.pSubpasses = &subpassDescription;
-    renderPass_info.dependencyCount = 1;
-    renderPass_info.pDependencies = dependencies.data();
-
-    VK_CHECK(vkCreateRenderPass(device_->getHandle(), &renderPass_info, nullptr, &render_pass_));
+    render_pass_ = CreateRenderPassOptimal(device_->getHandle(), {colorAttachment}, pDepthAttachment);
 }
 
 void SwapChain::destroyRenderPass()
@@ -334,14 +362,18 @@ void SwapChain::createFrameBuffers(uint32_t width, uint32_t height)
 {
     frame_buffers_.resize(image_count_);
     for (uint32_t i = 0; i < image_count_; i++) {
-        VkImageView attachments[] = {image_views_[i]};
+        std::vector<VkImageView> attachments = {image_views_[i]};
+
+        if (bCreate_depth_) {
+            attachments.push_back(depth_image_view_);
+        }
 
         VkFramebufferCreateInfo fb_info = {};
         fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         fb_info.pNext = nullptr;
         fb_info.renderPass = render_pass_;
-        fb_info.attachmentCount = 1;
-        fb_info.pAttachments = attachments;
+        fb_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+        fb_info.pAttachments = attachments.data();
         fb_info.width = width;
         fb_info.height = height;
         fb_info.layers = 1;
@@ -383,7 +415,9 @@ uint32_t SwapChain::waitForSwapChain()
  * @param pRenderFinishedSemaphores: 指示当前帧渲染完毕后发出的信号
  * @param pCmdBufExecutedFences: 指示当前帧的命令缓冲区的同步栅栏，用于 CPU 与 GPU 之间的同步
  */
-void SwapChain::getSemaphores(VkSemaphore* pImageAvailableSemaphore, VkSemaphore* pRenderFinishedSemaphores, VkFence* pCmdBufExecutedFences)
+void SwapChain::getSemaphores(VkSemaphore* pImageAvailableSemaphore,
+                              VkSemaphore* pRenderFinishedSemaphores,
+                              VkFence* pCmdBufExecutedFences)
 {
     *pImageAvailableSemaphore = image_available_semaphores_[current_frame_];
     *pRenderFinishedSemaphores = render_finished_semaphores_[current_frame_];
