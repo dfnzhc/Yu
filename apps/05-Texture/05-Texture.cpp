@@ -14,7 +14,7 @@
 #include "RHI/vulkan/command.hpp"
 #include "RHI/vulkan/appbase.hpp"
 #include "RHI/vulkan/pipeline_builder.hpp"
-#include "common/Bitmap.h"
+#include "common/Bitmap.hpp"
 #include "utils.hpp"
 #include "RHI/vulkan/texture.hpp"
 

@@ -2,7 +2,7 @@
 // Created by 秋鱼 on 2022/6/21.
 //
 
-#include "Bitmap.h"
+#include "Bitmap.hpp"
 #include "common.hpp"
 #include "math_utils.hpp"
 
