@@ -13,7 +13,7 @@ class PipelineBuilder
 public:
     PipelineBuilder() = default;
     virtual ~PipelineBuilder() = default;
-    
+
     void create(const VulkanDevice& device);
     void destroy();
 
@@ -26,11 +26,13 @@ public:
     void setRasterizationState(VkCullModeFlags cullMode = VK_CULL_MODE_NONE,
                                VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL,
                                VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE);
-    
+
     void setColorBlendState(const std::vector<VkPipelineColorBlendAttachmentState>& attStates);
     void setDynamicState(const std::vector<VkDynamicState>& dynamicStates);
     virtual void setViewPortState();
-    virtual void setDepthStencilState();
+    virtual void setDepthStencilState(VkBool32 depthTestEnable = VK_TRUE,
+                                      VkBool32 depthWriteEnable = VK_TRUE,
+                                      VkCompareOp depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL);
     void setMultisampleState(VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
 
     void createPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkPipeline& pipeline);

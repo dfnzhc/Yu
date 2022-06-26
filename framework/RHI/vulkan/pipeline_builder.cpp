@@ -88,9 +88,11 @@ void PipelineBuilder::setViewPortState()
     viewport_state_.pViewports = nullptr;
 }
 
-void PipelineBuilder::setDepthStencilState()
+void PipelineBuilder::setDepthStencilState(VkBool32 depthTestEnable,
+                                           VkBool32 depthWriteEnable,
+                                           VkCompareOp depthCompareOp)
 {
-    depth_stencil_state_ = pipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE);
+    depth_stencil_state_ = pipelineDepthStencilStateCreateInfo(depthTestEnable, depthWriteEnable, depthCompareOp);
 }
 
 void PipelineBuilder::setMultisampleState(VkSampleCountFlagBits sampleCount)
