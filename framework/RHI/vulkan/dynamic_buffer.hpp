@@ -16,14 +16,13 @@ class DynamicBuffer
 public:
     void create(const VulkanDevice& device, uint32_t numberOfFrames, uint32_t totalSize, std::string_view name);
     void destroy();
-    
+
     bool allocConstantBuffer(uint32_t size, void** data, VkDescriptorBufferInfo& descOut);
     VkDescriptorBufferInfo allocConstantBuffer(uint32_t size, void* data);
-    
+
     void setDescriptorSet(int bindIndex, uint32_t size, VkDescriptorSet descriptorSet);
-    
+
     void beginFrame();
-    
 
 private:
     const VulkanDevice* device_ = nullptr;
@@ -31,7 +30,7 @@ private:
     BufferRing mem_;
     uint32_t total_size_{};
     char* data_ = nullptr;
-    
+
     VkBuffer buffer_{};
 
 #ifdef USE_VMA

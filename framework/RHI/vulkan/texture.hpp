@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <common/Bitmap.h>
+#include <common/Bitmap.hpp>
 #include "device.hpp"
 
 #include "common/stb_inc.hpp"
