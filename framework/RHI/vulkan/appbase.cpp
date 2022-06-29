@@ -6,6 +6,8 @@
 #include <platform.hpp>
 #include <system_utils.hpp>
 #include <logger.hpp>
+#include <glfw_window.hpp>
+#include <imgui.h>
 
 namespace yu::vk {
 
@@ -38,6 +40,8 @@ void AppBase::setup()
         LOG_FATAL("Renderer has not been setup");
     }
     renderer_->create(*device_, swap_chain_.get(), *mouse_tracker_);
+    auto* glfwWindow = static_cast<San::GLFW_Window*>(platform_->getWindow());
+    renderer_->createUI(*instance_, glfwWindow->getGLFWHandle());
     renderer_->createWindowSizeDependency(width, height);
 }
 
@@ -97,7 +101,7 @@ void AppBase::input_event(const San::InputEvent& input_event)
         if (mouse_event.isEvent(MouseButton::Left, MouseAction::Release)) {
             mouse_tracker_->stopTracking();
         }
-        
+
         if (mouse_event.isEvent(MouseButton::Middle, MouseAction::Scroll)) {
             mouse_tracker_->zoom(mouse_event.scroll_dir);
         }

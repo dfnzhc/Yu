@@ -12,6 +12,7 @@
 #include "static_buffer.hpp"
 #include "async.hpp"
 #include "upload_heap.hpp"
+#include "imgui.hpp"
 
 #include <common/mouse_tracker.hpp>
 
@@ -33,7 +34,9 @@ public:
     void resize(uint32_t width, uint32_t height);
 
     virtual void render();
-
+    
+    void createUI(const VulkanInstance& instance, GLFWwindow* window);
+    
 protected:
     const VulkanDevice* device_ = nullptr;
     SwapChain* swap_chain_ = nullptr;
@@ -51,6 +54,7 @@ protected:
     uint32_t width_{};
     uint32_t height_{};
     
+    std::unique_ptr<ImGUI> imGui_ = nullptr;
     San::AsyncPool async_pool_;
 };
 

@@ -32,7 +32,7 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
     // 创建一个顶点缓冲区，用于上传顶点、索引数据
     const uint32_t vertexMemSize = (1 * 128) * 1024 * 1024;
     vertex_buffer_.create(device, vertexMemSize, true, "VertexData");
-    
+
     // 创建上传堆，用于向 GPU 上传资源，例如图片
     const uint32_t uploadHeapMemSize = 1000 * 1024 * 1024;
     upload_heap_.create(device, uploadHeapMemSize);
@@ -41,12 +41,13 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
 void Renderer::destroy()
 {
 //    async_pool_.flush();
-    
     command_list_.destroy();
     constant_buffer_.destroy();
     descriptor_pool_.destroy();
     vertex_buffer_.destroy();
     upload_heap_.destory();
+    
+    imGui_->destroy();
 }
 
 void Renderer::createWindowSizeDependency(uint32_t width, uint32_t height)
@@ -57,6 +58,10 @@ void Renderer::createWindowSizeDependency(uint32_t width, uint32_t height)
     rect_scissor_ = rect2D(width_, height_, 0, 0);
 
     viewport_ = viewport(static_cast<float>(width_), static_cast<float>(height_), 0.0f, 1.0f);
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+    io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 }
 
 void Renderer::destroyWindowSizeDependency()
@@ -75,6 +80,12 @@ void Renderer::render()
 {
     // 交换链提交显示当前帧的命令，并转到下一帧
     VK_CHECK(swap_chain_->present());
+}
+
+void Renderer::createUI(const VulkanInstance& instance, GLFWwindow* window)
+{
+    imGui_ = std::make_unique<ImGUI>();
+    imGui_->create(instance, *device_, swap_chain_->getRenderPass(), upload_heap_, window);
 }
 
 } // namespace yu::vk
