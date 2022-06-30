@@ -16,9 +16,25 @@ target_link_libraries(glm INTERFACE glm::glm)
 set_target_properties(glm PROPERTIES FOLDER "ThirdParty")
 
 # imgui [docking]
-find_package(imgui CONFIG REQUIRED)
-add_library(imgui INTERFACE)
-target_link_libraries(imgui INTERFACE imgui::imgui)
+ set(IMGUI_FILES
+        # header files
+        imgui/imconfig.h
+        imgui/imgui.h
+        imgui/imgui_internal.h
+        imgui/imstb_rectpack.h
+        imgui/imstb_textedit.h
+        imgui/imstb_truetype.h
+
+        # source files
+        imgui/imgui.cpp
+        imgui/imgui_demo.cpp
+        imgui/imgui_draw.cpp
+        imgui/imgui_tables.cpp
+        imgui/imgui_widgets.cpp
+        )
+
+add_library(imgui STATIC ${IMGUI_FILES})
+target_include_directories(imgui PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
 set_target_properties(imgui PROPERTIES FOLDER "ThirdParty")
 
 # vma

@@ -15,12 +15,14 @@ set(COMMON_FILES
         common/mouse_tracker.hpp 
         common/stb_inc.hpp
         common/Bitmap.hpp
-        common/math_utils.hpp 
-        
+        common/math_utils.hpp
+        common/imgui_impl_glfw.h
+
         # source files
         common/mouse_tracker.cpp 
         common/stb_inc.cpp 
-        common/Bitmap.cpp 
+        common/Bitmap.cpp
+        common/imgui_impl_glfw.cpp
         )
 
 set(VULKAN_FILES
@@ -50,6 +52,7 @@ set(VULKAN_FILES
         RHI/vulkan/upload_heap.hpp 
         RHI/vulkan/gbuffer.hpp 
         RHI/vulkan/imgui.hpp
+        RHI/vulkan/imgui_impl_vulkan.h
 
         # source files
         RHI/vulkan/instance_properties.cpp 
@@ -75,7 +78,10 @@ set(VULKAN_FILES
         RHI/vulkan/texture.cpp 
         RHI/vulkan/upload_heap.cpp 
         RHI/vulkan/gbuffer.cpp 
-        RHI/vulkan/imgui.cpp 
+        RHI/vulkan/imgui.cpp
+        RHI/vulkan/buffer.cpp 
+        RHI/vulkan/buffer.hpp
+        RHI/vulkan/imgui_impl_vulkan.cpp
         )
 
 # set the group of the source files
