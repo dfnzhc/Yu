@@ -93,6 +93,19 @@ void AppBase::input_event(const San::InputEvent& input_event)
         [[maybe_unused]]
         const auto& mouse_event = static_cast<const MouseInputEvent&>(input_event);
 
+        ImGuiIO& io = ImGui::GetIO();
+        if (mouse_event.isEvent(MouseButton::Left, MouseAction::Press) ||
+            mouse_event.isEvent(MouseButton::Left, MouseAction::PressedMove)) {
+            io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+        }
+        if (mouse_event.isEvent(MouseButton::Left, MouseAction::Release)) {
+            io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+        }
+        // (2) ONLY forward mouse data to your underlying app/game.
+        if (io.WantCaptureMouse) {
+            return;
+        }
+        
         if (mouse_event.isEvent(MouseButton::Left, MouseAction::PressedMove)) {
             mouse_tracker_->update(static_cast<int>(mouse_event.pos_x),
                                    static_cast<int>(mouse_event.pos_y));
