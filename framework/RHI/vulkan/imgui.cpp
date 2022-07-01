@@ -48,14 +48,9 @@ ImGUI::ImGUI()
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+//    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
     //io.ConfigViewportsNoAutoMerge = true;
     //io.ConfigViewportsNoTaskBarIcon = true;
-
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -105,6 +100,7 @@ void ImGUI::create(const VulkanInstance& instance,
     init_info.Device = device.getHandle();
     init_info.Queue = device.getGraphicsQueue();
     init_info.DescriptorPool = descriptor_pool_;
+    init_info.Subpass = 0;
     init_info.MinImageCount = 3;
     init_info.ImageCount = 3;
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
