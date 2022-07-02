@@ -45,13 +45,14 @@ public:
 #endif
 
     // pipeline cache
-    void createPipelineCache();
-    void destroyPipelineCache();
     VkPipelineCache getPipelineCache() const { return pipeline_cache_; }
 
 private:
     void setEssentialExtensions();
     std::vector<VkDeviceQueueCreateInfo> getDeviceQueueInfos(VkSurfaceKHR surface);
+
+    void createPipelineCache();
+    void destroyPipelineCache();
 
 private:
     DeviceProperties properties_;

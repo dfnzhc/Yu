@@ -389,6 +389,11 @@ protected:
 
         // Render to generate draw buffers
         ImGui::Render();
+
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
     }
 
 };
