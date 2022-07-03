@@ -124,4 +124,39 @@ void DestroyDebugMessenger(VkInstance instance)
     DebugMessenger = nullptr;
 }
 
+DebugUtil::DebugUtil(VkDevice device) : device_{device}
+{
+}
+
+void DebugUtil::setObjectName(const uint64_t object, const std::string& name, VkObjectType t)
+{
+    if (CanUseDebugEXT) {
+        VkDebugUtilsObjectNameInfoEXT s{VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT, nullptr, t, object, name.c_str()};
+        vkSetDebugUtilsObjectNameEXT(device_, &s);
+    }
+}
+
+void DebugUtil::beginLabel(VkCommandBuffer cmdBuf, const std::string& label)
+{
+    if (CanUseDebugEXT) {
+        VkDebugUtilsLabelEXT s{VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT, nullptr, label.c_str(), {1.0f, 1.0f, 1.0f, 1.0f}};
+        vkCmdBeginDebugUtilsLabelEXT(cmdBuf, &s);
+    }
+}
+
+void DebugUtil::endLabel(VkCommandBuffer cmdBuf)
+{
+    if (CanUseDebugEXT) {
+        vkCmdEndDebugUtilsLabelEXT(cmdBuf);
+    }
+}
+
+void DebugUtil::insertLabel(VkCommandBuffer cmdBuf, const std::string& label)
+{
+    if (CanUseDebugEXT) {
+        VkDebugUtilsLabelEXT s{VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT, nullptr, label.c_str(), {1.0f, 1.0f, 1.0f, 1.0f}};
+        vkCmdInsertDebugUtilsLabelEXT(cmdBuf, &s);
+    }
+}
+
 } // namespace yu::vk
