@@ -47,6 +47,12 @@ public:
     // pipeline cache
     VkPipelineCache getPipelineCache() const { return pipeline_cache_; }
 
+
+    VkCommandBuffer createCommandBuffer(VkCommandBufferLevel level, VkCommandPool pool, bool begin = false);
+    VkCommandBuffer createCommandBuffer(VkCommandBufferLevel level, bool begin = false);
+    void flushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue, VkCommandPool pool, bool free = true);
+    void flushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue, bool free = true);
+    
 private:
     void setEssentialExtensions();
     std::vector<VkDeviceQueueCreateInfo> getDeviceQueueInfos(VkSurfaceKHR surface);
@@ -69,6 +75,8 @@ private:
     uint32_t present_queue_index_{UINT32_MAX};
 
     VkPipelineCache pipeline_cache_{};
+    
+    VkCommandPool command_pool_{};
     
 #ifdef USE_VMA
     VmaAllocator allocator_ = nullptr;
