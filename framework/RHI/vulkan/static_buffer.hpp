@@ -48,9 +48,9 @@ private:
 #ifdef USE_VMA
     VmaAllocation buffer_allocation_{};
     VmaAllocation video_allocation_{};
+#else
     VkDeviceMemory device_memory_{};
     VkDeviceMemory video_memory_{};
-#else
 #endif
 };
 

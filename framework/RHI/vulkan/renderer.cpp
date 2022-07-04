@@ -16,7 +16,7 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
 
     // 创建命令列表
     const uint32_t commandBuffersPerFrame = 8;
-    command_list_.create(device, swapChain->getFrameCount(), commandBuffersPerFrame);
+    frame_commands_.create(device, swapChain->getFrameCount(), commandBuffersPerFrame);
 
     // 创建动态的常量缓冲区，用于设定 uniform、索引、顶点数据
     const uint32_t constantBuffersMemSize = 200 * 1024 * 1024;
@@ -41,7 +41,7 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
 void Renderer::destroy()
 {
 //    async_pool_.flush();
-    command_list_.destroy();
+    frame_commands_.destroy();
     constant_buffer_.destroy();
     descriptor_pool_.destroy();
     vertex_buffer_.destroy();

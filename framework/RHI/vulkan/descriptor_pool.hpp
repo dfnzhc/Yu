@@ -39,9 +39,8 @@ private:
 
     VkDescriptorPool descriptor_pool_{};
 
-    std::mutex mutex_;
+    std::mutex mutex_{};
     uint32_t allocated_descriptor_count_{};
-
 };
 
 } // yu::vk

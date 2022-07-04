@@ -6,7 +6,7 @@
 
 #include "device.hpp"
 #include "swap_chain.hpp"
-#include "command.hpp"
+#include "commands.hpp"
 #include "dynamic_buffer.hpp"
 #include "descriptor_pool.hpp"
 #include "static_buffer.hpp"
@@ -42,7 +42,7 @@ protected:
     SwapChain* swap_chain_ = nullptr;
     const MouseTracker* mouse_tracker_ = nullptr;
 
-    CommandList command_list_;
+    FrameCommands frame_commands_;
     DynamicBuffer constant_buffer_;
     DescriptorPool descriptor_pool_;
     StaticBuffer vertex_buffer_;

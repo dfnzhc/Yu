@@ -11,7 +11,7 @@
 #include "RHI/vulkan/pipeline.hpp"
 #include "RHI/vulkan/initializers.hpp"
 #include "RHI/vulkan/error.hpp"
-#include "RHI/vulkan/command.hpp"
+#include "RHI/vulkan/commands.hpp"
 
 using namespace yu::vk;
 
@@ -54,7 +54,7 @@ int main()
         pipeline.create(device, swapChain.getRenderPass(), descriptorSetLayout, pipelineBuilder);
 
         // 5.1 创建命令列表
-        CommandList cmdList;
+        FrameCommands cmdList;
         const uint32_t commandBuffersPerFrame = 8;
         cmdList.create(device, SwapChain::FRAMES_IN_FLIGHT, commandBuffersPerFrame);
 

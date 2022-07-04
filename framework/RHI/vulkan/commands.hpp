@@ -10,7 +10,7 @@ namespace yu::vk {
 /**
  * @brief 用于创建命令池和命令缓冲区
  */
-class CommandList
+class FrameCommands
 {
 public:
     void create(const VulkanDevice& device, uint32_t numberOfFrames, uint32_t commandBufferPerFrame, bool isCompute = false);
@@ -29,11 +29,11 @@ private:
     struct CommandBufferPerFrame
     {
         VkCommandPool command_pool{};
-        std::vector<VkCommandBuffer> command_buffer;
+        std::vector<VkCommandBuffer> command_buffer{};
         uint32_t number_of_used{};
     };
     
-    std::vector<CommandBufferPerFrame> command_buffers;
+    std::vector<CommandBufferPerFrame> command_buffers{};
     CommandBufferPerFrame* current_buffer = nullptr;
 };
 

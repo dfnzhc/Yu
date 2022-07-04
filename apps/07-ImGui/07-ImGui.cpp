@@ -11,7 +11,7 @@
 #include "RHI/vulkan/pipeline.hpp"
 #include "RHI/vulkan/initializers.hpp"
 #include "RHI/vulkan/error.hpp"
-#include "RHI/vulkan/command.hpp"
+#include "RHI/vulkan/commands.hpp"
 #include "RHI/vulkan/appbase.hpp"
 #include "RHI/vulkan/pipeline_builder.hpp"
 #include "common/Bitmap.hpp"
@@ -210,10 +210,10 @@ public:
 
         // 切换命令列表到当前帧
         constant_buffer_.beginFrame();
-        command_list_.beginFrame();
+        frame_commands_.beginFrame();
 
         // 取到一个命令缓冲区，然后开始记录
-        auto cmdBuffer = command_list_.getNewCommandBuffer();
+        auto cmdBuffer = frame_commands_.getNewCommandBuffer();
         {
             auto cmd_buf_info = yu::vk::commandBufferBeginInfo();
             cmd_buf_info.pNext = nullptr;
