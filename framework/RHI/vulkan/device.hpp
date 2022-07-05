@@ -16,6 +16,7 @@
 #include "vulkan_utils.hpp"
 #include <window.hpp>
 #include "instance.hpp"
+#include "buffer.hpp"
 
 namespace yu::vk {
 
@@ -47,6 +48,19 @@ public:
     // pipeline cache
     VkPipelineCache getPipelineCache() const { return pipeline_cache_; }
 
+    VkResult createBuffer(VkBufferUsageFlags usageFlags,
+                          VkMemoryPropertyFlags memoryPropertyFlags,
+                          VkDeviceSize size,
+                          VkBuffer* buffer,
+                          VkDeviceMemory* memory,
+                          void* data = nullptr);
+    VkResult createBuffer(VkBufferUsageFlags usageFlags,
+                          VkMemoryPropertyFlags memoryPropertyFlags,
+                          VulkanBuffer* buffer,
+                          VkDeviceSize size,
+                          void* data = nullptr);
+    void copyBuffer(VulkanBuffer* src, VulkanBuffer* dst, VkQueue queue, VkBufferCopy* copyRegion = nullptr);
+    
 
     VkCommandBuffer createCommandBuffer(VkCommandBufferLevel level, VkCommandPool pool, bool begin = false);
     VkCommandBuffer createCommandBuffer(VkCommandBufferLevel level, bool begin = false);

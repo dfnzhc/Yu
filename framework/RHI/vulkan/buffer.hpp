@@ -19,17 +19,9 @@ namespace yu::vk {
  * @param usage 指示缓冲区的用途
  * @param flags 一些额外的信息
  */
-inline VkBufferCreateInfo makeBufferCreateInfo(VkDeviceSize size,
-                                               VkBufferUsageFlags usage,
-                                               VkBufferCreateFlags flags = 0)
-{
-    VkBufferCreateInfo createInfo = {VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
-    createInfo.size = size;
-    createInfo.usage = usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    createInfo.flags = flags;
-
-    return createInfo;
-}
+VkBufferCreateInfo makeBufferCreateInfo(VkDeviceSize size,
+                                        VkBufferUsageFlags usage,
+                                        VkBufferCreateFlags flags = 0);
 
 /**
  * @brief 缓冲区视图的创建信息
@@ -37,72 +29,57 @@ inline VkBufferCreateInfo makeBufferCreateInfo(VkDeviceSize size,
  * @param range 所指定的缓冲区范围
  * @param offset 视图所指定内存在缓冲区的偏移
  */
-inline VkBufferViewCreateInfo makeBufferViewCreateInfo(VkBuffer buffer,
-                                                       VkFormat format,
-                                                       VkDeviceSize range,
-                                                       VkDeviceSize offset = 0,
-                                                       VkBufferViewCreateFlags flags = 0)
-{
-    VkBufferViewCreateInfo createInfo = {VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO};
-    createInfo.buffer = buffer;
-    createInfo.offset = offset;
-    createInfo.range = range;
-    createInfo.flags = flags;
-    createInfo.format = format;
-
-    return createInfo;
-}
+VkBufferViewCreateInfo makeBufferViewCreateInfo(VkBuffer buffer,
+                                                VkFormat format,
+                                                VkDeviceSize range,
+                                                VkDeviceSize offset = 0,
+                                                VkBufferViewCreateFlags flags = 0);
 
 /**
  * @brief 通过描述符的缓冲区信息来设置缓冲区视图创建信息
  */
-inline VkBufferViewCreateInfo makeBufferViewCreateInfo(const VkDescriptorBufferInfo& descrInfo,
-                                                       VkFormat fmt,
-                                                       VkBufferViewCreateFlags flags = 0)
-{
-    VkBufferViewCreateInfo createInfo = {VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO};
-    createInfo.buffer = descrInfo.buffer;
-    createInfo.offset = descrInfo.offset;
-    createInfo.range = descrInfo.range;
-    createInfo.flags = flags;
-    createInfo.format = fmt;
-
-    return createInfo;
-}
+VkBufferViewCreateInfo makeBufferViewCreateInfo(const VkDescriptorBufferInfo& descrInfo,
+                                                VkFormat fmt,
+                                                VkBufferViewCreateFlags flags = 0);
 
 /**
  * @brief 创建 vulkan 缓冲区
  */
-inline VkBuffer createBuffer(VkDevice device, VkBufferCreateInfo info)
-{
-    VkBuffer buffer;
-    VkResult result = vkCreateBuffer(device, &info, nullptr, &buffer);
-    assert(result == VK_SUCCESS);
-    return buffer;
-}
+VkBuffer createBuffer(VkDevice device, VkBufferCreateInfo info);
 
 /**
  * @brief 创建 vulkan 缓冲区的视图
  */
-inline VkBufferView createBufferView(VkDevice device, VkBufferViewCreateInfo info)
-{
-    VkBufferView bufferView;
-    VkResult result = vkCreateBufferView(device, &info, nullptr, &bufferView);
-    assert(result == VK_SUCCESS);
-    return bufferView;
-}
+VkBufferView createBufferView(VkDevice device, VkBufferViewCreateInfo info);
 
-inline VkDeviceAddress getBufferDeviceAddressKHR(VkDevice device, VkBuffer buffer)
+/**
+* @brief 对备份设备内存的缓冲区的访问进行封装
+*/
+struct VulkanBuffer
 {
-    VkBufferDeviceAddressInfo info = {VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR};
-    info.buffer = buffer;
-    return vkGetBufferDeviceAddressKHR(device, &info);
-}
-inline VkDeviceAddress getBufferDeviceAddress(VkDevice device, VkBuffer buffer)
-{
-    VkBufferDeviceAddressInfo info = {VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO};
-    info.buffer = buffer;
-    return vkGetBufferDeviceAddress(device, &info);
-}
+    VkDevice device{};
+    VkBuffer buffer = VK_NULL_HANDLE;
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+    VkDescriptorBufferInfo descriptor{};
+    VkDeviceSize size = 0;
+    VkDeviceSize alignment = 0;
+    void* mapped = nullptr;
+
+    /** @brief 在创建缓冲区的时候设置其用途 */
+    VkBufferUsageFlags usageFlags{};
+    /** @brief 在创建缓冲区的时候设置它的属性标志 */
+    VkMemoryPropertyFlags memoryPropertyFlags{};
+
+    VkResult map(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    void unmap();
+
+    VkResult bind(VkDeviceSize offset = 0);
+    void setupDescriptor(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    void copyTo(void* data, VkDeviceSize size);
+    VkResult flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    VkResult invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+
+    void destroy();
+};
 
 } // yu::vk
