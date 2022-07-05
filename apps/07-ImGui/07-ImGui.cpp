@@ -165,18 +165,18 @@ public:
                          descriptor_set_layout_, pipeline_builder_);
 
         // 分配内存并传递顶点信息
-        vertex_buffer_.allocBuffer(static_cast<uint32_t>(vertices.size()),
+        static_buffer_.allocBuffer(static_cast<uint32_t>(vertices.size()),
                                    sizeof(Vertex),
                                    vertices.data(),
                                    &vertex_buffer_info_);
 
         // 分配内存并传递索引信息
-        vertex_buffer_.allocBuffer(static_cast<uint32_t>(indices.size()),
+        static_buffer_.allocBuffer(static_cast<uint32_t>(indices.size()),
                                    sizeof(Vertex),
                                    indices.data(),
                                    &index_buffer_info_);
 
-        vertex_buffer_.uploadData(upload_heap_.getCommandBuffer());
+        static_buffer_.uploadData(upload_heap_.getCommandBuffer());
 
 //        imGui_.create(device, constant_buffer_, swapChain->getRenderPass(), upload_heap_);
 
@@ -265,24 +265,25 @@ public:
         // 停止记录，并提交命令缓冲区
         {
             VK_CHECK(vkEndCommandBuffer(cmdBuffer));
+            swap_chain_->submit(device_->getGraphicsQueue(), cmdBuffer);
 
-            VkSemaphore ImageAvailableSemaphore;
-            VkSemaphore RenderFinishedSemaphores;
-            VkFence CmdBufExecutedFences;
-            swap_chain_->getSemaphores(&ImageAvailableSemaphore, &RenderFinishedSemaphores, &CmdBufExecutedFences);
-
-            VkPipelineStageFlags submitWaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            auto submit_info = submitInfo();
-            submit_info.pNext = nullptr;
-            submit_info.waitSemaphoreCount = 1;
-            submit_info.pWaitSemaphores = &ImageAvailableSemaphore;
-            submit_info.pWaitDstStageMask = &submitWaitStage;
-            submit_info.commandBufferCount = 1;
-            submit_info.pCommandBuffers = &cmdBuffer;
-            submit_info.signalSemaphoreCount = 1;
-            submit_info.pSignalSemaphores = &RenderFinishedSemaphores;
-
-            VK_CHECK(vkQueueSubmit(device_->getGraphicsQueue(), 1, &submit_info, CmdBufExecutedFences));
+//            VkSemaphore ImageAvailableSemaphore;
+//            VkSemaphore RenderFinishedSemaphores;
+//            VkFence CmdBufExecutedFences;
+//            swap_chain_->getSemaphores(&ImageAvailableSemaphore, &RenderFinishedSemaphores, &CmdBufExecutedFences);
+//
+//            VkPipelineStageFlags submitWaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+//            auto submit_info = submitInfo();
+//            submit_info.pNext = nullptr;
+//            submit_info.waitSemaphoreCount = 1;
+//            submit_info.pWaitSemaphores = &ImageAvailableSemaphore;
+//            submit_info.pWaitDstStageMask = &submitWaitStage;
+//            submit_info.commandBufferCount = 1;
+//            submit_info.pCommandBuffers = &cmdBuffer;
+//            submit_info.signalSemaphoreCount = 1;
+//            submit_info.pSignalSemaphores = &RenderFinishedSemaphores;
+//
+//            VK_CHECK(vkQueueSubmit(device_->getGraphicsQueue(), 1, &submit_info, CmdBufExecutedFences));
         }
 
         Renderer::render();
@@ -403,6 +404,7 @@ int main()
     San::LogSystem log;
 
     San::WinPlatform platform;
+    platform.resize(1920, 1080);
 
     AppSample07 app{};
     platform.setApplication(&app);

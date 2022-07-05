@@ -23,12 +23,14 @@ public:
               VkDescriptorBufferInfo* pConstantBuffer = nullptr,
               VkDescriptorSet descriptorSet = nullptr);
 
+    // 逐顶点绘制
     void draw(VkCommandBuffer cmdBuffer,
               uint32_t vertexCount,
               VkDescriptorBufferInfo* pVertexBuffer,
               VkDescriptorBufferInfo* pConstantBuffer = nullptr,
               VkDescriptorSet descriptorSet = nullptr);
 
+    // 按索引绘制
     void drawIndexed(VkCommandBuffer cmdBuffer,
                      uint32_t indicesCount,
                      VkDescriptorBufferInfo* pVertexBuffer,

@@ -45,7 +45,7 @@ protected:
     FrameCommands frame_commands_;
     DynamicBuffer constant_buffer_;
     DescriptorPool descriptor_pool_;
-    StaticBuffer vertex_buffer_;
+    StaticBuffer static_buffer_;
     UploadHeap upload_heap_;
 
     VkRect2D rect_scissor_{};

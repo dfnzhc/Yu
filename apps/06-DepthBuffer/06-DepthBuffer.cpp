@@ -161,18 +161,18 @@ public:
                          descriptor_set_layout_, pipeline_builder_);
 
         // 分配内存并传递顶点信息
-        vertex_buffer_.allocBuffer(static_cast<uint32_t>(vertices.size()),
+        static_buffer_.allocBuffer(static_cast<uint32_t>(vertices.size()),
                                    sizeof(Vertex),
                                    vertices.data(),
                                    &vertex_buffer_info_);
 
         // 分配内存并传递索引信息
-        vertex_buffer_.allocBuffer(static_cast<uint32_t>(indices.size()),
+        static_buffer_.allocBuffer(static_cast<uint32_t>(indices.size()),
                                    sizeof(Vertex),
                                    indices.data(),
                                    &index_buffer_info_);
 
-        vertex_buffer_.uploadData(upload_heap_.getCommandBuffer());
+        static_buffer_.uploadData(upload_heap_.getCommandBuffer());
         upload_heap_.flushAndFinish();
     }
 
