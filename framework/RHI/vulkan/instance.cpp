@@ -49,10 +49,8 @@ VulkanInstance::~VulkanInstance()
 {
     // destroy debug messenger
     DestroyDebugMessenger(instance_);
-    
-    if (surface_ != VK_NULL_HANDLE) {
-        vkDestroySurfaceKHR(instance_, surface_, nullptr);
-    }
+
+    destroySurface();
 
     if (instance_ != VK_NULL_HANDLE) {
         vkDestroyInstance(instance_, nullptr);
@@ -122,9 +120,20 @@ VkPhysicalDevice VulkanInstance::getBestDevice() const
 
 void VulkanInstance::createSurface(const San::Window* window)
 {
+    if (surface_ != VK_NULL_HANDLE)
+        destroySurface();
+    
     // create surface
     auto* glfw_window = dynamic_cast<const San::GLFW_Window*>(window);
     VK_CHECK(glfwCreateWindowSurface(instance_, glfw_window->getGLFWHandle(), nullptr, &surface_));
+}
+
+void VulkanInstance::destroySurface()
+{
+    if (surface_ != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(instance_, surface_, nullptr);
+        surface_ = VK_NULL_HANDLE;
+    }
 }
 
 } // yu::vk

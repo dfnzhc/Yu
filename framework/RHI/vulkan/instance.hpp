@@ -16,6 +16,7 @@ public:
     ~VulkanInstance();
     
     void createSurface(const San::Window* window);
+    void destroySurface();
     
     VkSurfaceKHR getSurface() const { return surface_; }
     VkInstance getHandle() const { return instance_; }
