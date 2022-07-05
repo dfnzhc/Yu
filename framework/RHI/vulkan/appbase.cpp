@@ -19,7 +19,7 @@ bool AppBase::prepare(San::Platform& platform)
 void AppBase::setup()
 {
     Application::setup();
-
+    
     initVulkan();
 
     LOG_INFO("Successfully set up vulkan");
@@ -68,6 +68,11 @@ bool AppBase::resize(uint32_t width, uint32_t height)
         return false;
     }
 
+    vkDeviceWaitIdle(device_->getHandle());
+    swap_chain_->destroyWindowSizeDependency();
+    instance_->createSurface(platform_->getWindow());
+    swap_chain_->createWindowSizeDependency(instance_->getSurface());
+    
     renderer_->resize(width, height);
 
     return true;
