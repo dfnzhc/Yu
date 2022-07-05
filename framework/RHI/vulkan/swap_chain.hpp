@@ -27,17 +27,19 @@ public:
     VkFramebuffer getFrameBuffer(int i) const { return frame_buffers_[i]; }
 
     uint32_t waitForSwapChain();
-    void getSemaphores(VkSemaphore *pImageAvailableSemaphore, VkSemaphore *pRenderFinishedSemaphores, VkFence *pCmdBufExecutedFences);
+    void getSemaphores(VkSemaphore* pImageAvailableSemaphore, VkSemaphore* pRenderFinishedSemaphores, VkFence* pCmdBufExecutedFences);
+    void submit(VkQueue queue, VkCommandBuffer cmdBuffer, VkPipelineStageFlags submitWaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+    
     VkResult present();
-    
-    uint32_t getFrameCount() const ;
-    
+
+    uint32_t getFrameCount() const;
+
     static constexpr uint32_t FRAMES_IN_FLIGHT = 2;
 
 private:
     void getSurfaceFormat();
     void createImageAndRTV();
-    
+
     void createDepthImage(uint32_t width, uint32_t height);
     void destroyDepthImage();
 
@@ -64,15 +66,15 @@ private:
     std::vector<VkImage> images_;
     std::vector<VkImageView> image_views_;
     std::vector<VkFramebuffer> frame_buffers_;
-    
+
     bool bCreate_depth_ = false;
     VkImage depth_image_;
     VkImageView depth_image_view_;
     VkDeviceMemory depth_image_buffer_;
-   
+
     uint32_t current_frame_ = 0;
     uint32_t prev_frame_ = 0;
-    
+
     std::vector<VkFence> cmdBuf_executed_fences_;
     std::vector<VkSemaphore> image_available_semaphores_;
     std::vector<VkSemaphore> render_finished_semaphores_;

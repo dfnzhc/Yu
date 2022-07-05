@@ -230,7 +230,7 @@ void SwapChain::getSurfaceFormat()
     // 如果没有，就选用第一个格式
     format_ = surfaceFormats[0].format;
     color_space_ = surfaceFormats[0].colorSpace;
-    
+
     for (const auto& format : surfaceFormats) {
         if (format.format == VK_FORMAT_B8G8R8A8_UNORM &&
             format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -412,6 +412,26 @@ void SwapChain::getSemaphores(VkSemaphore* pImageAvailableSemaphore,
     *pImageAvailableSemaphore = image_available_semaphores_[current_frame_];
     *pRenderFinishedSemaphores = render_finished_semaphores_[current_frame_];
     *pCmdBufExecutedFences = cmdBuf_executed_fences_[current_frame_];
+}
+
+void SwapChain::submit(VkQueue queue, VkCommandBuffer cmdBuffer, VkPipelineStageFlags submitWaitStage)
+{
+    VkSemaphore ImageAvailableSemaphore;
+    VkSemaphore RenderFinishedSemaphores;
+    VkFence CmdBufExecutedFences;
+    getSemaphores(&ImageAvailableSemaphore, &RenderFinishedSemaphores, &CmdBufExecutedFences);
+
+    auto submit_info = submitInfo();
+    submit_info.pNext = nullptr;
+    submit_info.waitSemaphoreCount = 1;
+    submit_info.pWaitSemaphores = &ImageAvailableSemaphore;
+    submit_info.pWaitDstStageMask = &submitWaitStage;
+    submit_info.commandBufferCount = 1;
+    submit_info.pCommandBuffers = &cmdBuffer;
+    submit_info.signalSemaphoreCount = 1;
+    submit_info.pSignalSemaphores = &RenderFinishedSemaphores;
+
+    VK_CHECK(vkQueueSubmit(queue, 1, &submit_info, CmdBufExecutedFences));
 }
 
 /**
