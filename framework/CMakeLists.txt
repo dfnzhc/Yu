@@ -40,8 +40,8 @@ set(VULKAN_FILES
         RHI/vulkan/ext_hdr.hpp 
         RHI/vulkan/ext_raytracing.hpp 
         RHI/vulkan/swap_chain.hpp 
-        RHI/vulkan/pipeline.hpp 
-        RHI/vulkan/command.hpp 
+        RHI/vulkan/pipeline.hpp
+        RHI/vulkan/commands.hpp 
         RHI/vulkan/appbase.hpp 
         RHI/vulkan/renderer.hpp 
         RHI/vulkan/dynamic_buffer.hpp 
@@ -52,6 +52,7 @@ set(VULKAN_FILES
         RHI/vulkan/upload_heap.hpp 
         RHI/vulkan/gbuffer.hpp 
         RHI/vulkan/imgui.hpp
+        RHI/vulkan/buffer.hpp
         RHI/vulkan/imgui_impl_vulkan.h
 
         # source files
@@ -67,8 +68,8 @@ set(VULKAN_FILES
         RHI/vulkan/ext_raytracing.cpp 
         RHI/vulkan/swap_chain.cpp 
         RHI/vulkan/pipeline.cpp 
-        RHI/vulkan/vulkan_utils.cpp 
-        RHI/vulkan/command.cpp 
+        RHI/vulkan/vulkan_utils.cpp
+        RHI/vulkan/commands.cpp 
         RHI/vulkan/appbase.cpp 
         RHI/vulkan/renderer.cpp 
         RHI/vulkan/dynamic_buffer.cpp 
@@ -79,9 +80,8 @@ set(VULKAN_FILES
         RHI/vulkan/upload_heap.cpp 
         RHI/vulkan/gbuffer.cpp 
         RHI/vulkan/imgui.cpp
-        RHI/vulkan/buffer.cpp 
-        RHI/vulkan/buffer.hpp
         RHI/vulkan/imgui_impl_vulkan.cpp
+        RHI/vulkan/buffer.cpp
         )
 
 # set the group of the source files
