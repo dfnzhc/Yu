@@ -27,6 +27,12 @@
 using namespace yu;
 using namespace yu::vk;
 
+struct UIStates
+{
+    std::array<float, 50> frameTimes{};
+    float frameTimeMin = 9999.0f, frameTimeMax = 0.0f;
+} uiStates;
+
 struct Vertex
 {
     glm::vec3 pos;
@@ -266,24 +272,6 @@ public:
         {
             VK_CHECK(vkEndCommandBuffer(cmdBuffer));
             swap_chain_->submit(device_->getGraphicsQueue(), cmdBuffer);
-
-//            VkSemaphore ImageAvailableSemaphore;
-//            VkSemaphore RenderFinishedSemaphores;
-//            VkFence CmdBufExecutedFences;
-//            swap_chain_->getSemaphores(&ImageAvailableSemaphore, &RenderFinishedSemaphores, &CmdBufExecutedFences);
-//
-//            VkPipelineStageFlags submitWaitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-//            auto submit_info = submitInfo();
-//            submit_info.pNext = nullptr;
-//            submit_info.waitSemaphoreCount = 1;
-//            submit_info.pWaitSemaphores = &ImageAvailableSemaphore;
-//            submit_info.pWaitDstStageMask = &submitWaitStage;
-//            submit_info.commandBufferCount = 1;
-//            submit_info.pCommandBuffers = &cmdBuffer;
-//            submit_info.signalSemaphoreCount = 1;
-//            submit_info.pSignalSemaphores = &RenderFinishedSemaphores;
-//
-//            VK_CHECK(vkQueueSubmit(device_->getGraphicsQueue(), 1, &submit_info, CmdBufExecutedFences));
         }
 
         Renderer::render();
@@ -320,48 +308,22 @@ public:
     {
         AppBase::update(delta_time);
 
-        render();
-    }
+        static float updateUITime = 0.0;
+        updateUITime += delta_time;
 
-    void input_event(const San::InputEvent& input_event) override
-    {
-        AppBase::input_event(input_event);
-
-        using San::InputEvent;
-        using San::EventType;
-        using San::KeyInputEvent;
-        using San::MouseInputEvent;
-        using San::MouseButton;
-        using San::MouseAction;
-
-        if (input_event.type == EventType::Keyboard) {
-            [[maybe_unused]]
-            const auto& key_event = static_cast<const KeyInputEvent&>(input_event);
-
-//        LOG_INFO("[Keyboard] key: {}, action: {}", static_cast<int>(key_event.code), GetActionString(key_event.action));
-        } else if (input_event.type == EventType::Mouse) {
-            [[maybe_unused]]
-            const auto& mouse_event = static_cast<const MouseInputEvent&>(input_event);
-
-//            ImGuiIO& io = ImGui::GetIO();
-//
-//            io.MousePos = ImVec2(static_cast<float>(mouse_event.pos_x), static_cast<float>(mouse_event.pos_y));
-//
-//            if (mouse_event.isEvent(MouseButton::Middle, MouseAction::Scroll)) {
-//                io.MouseWheel += mouse_event.scroll_dir;
-//            }
-//
-//            if (mouse_event.isEvent(MouseButton::Left, MouseAction::Press)) {
-//                io.MouseDown[0] = true;
-//            }
-//
-//            if (mouse_event.isEvent(MouseButton::Left, MouseAction::Release)) {
-//                io.MouseDown[0] = false;
-//            }
-            //        LOG_INFO("[Mouse] key: {}, action: {} ({}.{} {})",
-//                 GetButtonString(mouse_event.button),
-//                 GetActionString(mouse_event.action), mouse_event.pos_x, mouse_event.pos_y, mouse_event.scroll_dir);
+        if (updateUITime > .5f) {
+            std::rotate(uiStates.frameTimes.begin(), uiStates.frameTimes.begin() + 1, uiStates.frameTimes.end());
+            uiStates.frameTimes.back() = fps_;
+            if (fps_ < uiStates.frameTimeMin) {
+                uiStates.frameTimeMin = fps_;
+            }
+            if (fps_ > uiStates.frameTimeMax) {
+                uiStates.frameTimeMax = fps_;
+            }
+            updateUITime = 0.0f;
         }
+
+        render();
     }
 
 protected:
@@ -382,8 +344,10 @@ protected:
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Example settings");
-        ImGui::Text("This is a test text!");
+        ImGui::Begin("Debug");
+        ImGui::Text("[FPS]: %d", static_cast<int>(uiStates.frameTimes.back()));
+
+        ImGui::PlotLines("Frame Times", &uiStates.frameTimes[0], 50, 0, "", uiStates.frameTimeMin, uiStates.frameTimeMax, ImVec2(0, 80));
         ImGui::End();
 
         ImGui::ShowDemoWindow();
