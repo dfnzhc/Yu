@@ -31,4 +31,14 @@ inline std::string GetTextureFile(const std::string& filename)
     return TextureFilePath() + "/" + filename;
 }
 
+constexpr inline std::string ModelFilePath()
+{
+    return AssetPath() + "/models";
+}
+
+inline std::string GetModelFile(const std::string& filename)
+{
+    return ModelFilePath() + "/" + filename;
+}
+
 } // namespace yu
