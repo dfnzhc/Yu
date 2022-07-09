@@ -16,7 +16,7 @@ target_link_libraries(glm INTERFACE glm::glm)
 set_target_properties(glm PROPERTIES FOLDER "ThirdParty")
 
 # imgui [docking]
- set(IMGUI_FILES
+set(IMGUI_FILES
         # header files
         imgui/imconfig.h
         imgui/imgui.h
@@ -48,3 +48,14 @@ find_path(STB_INCLUDE_DIRS "stb.h")
 add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE ${STB_INCLUDE_DIRS})
 
+# tinyobjloader
+find_package(tinyobjloader CONFIG REQUIRED)
+add_library(tinyobj INTERFACE)
+target_link_libraries(tinyobj INTERFACE tinyobjloader::tinyobjloader)
+set_target_properties(tinyobj PROPERTIES FOLDER "ThirdParty")
+
+# tinygltf
+find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
+add_library(tinygltf INTERFACE)
+target_include_directories(tinygltf INTERFACE ${TINYGLTF_INCLUDE_DIRS})
+set_target_properties(tinygltf PROPERTIES FOLDER "ThirdParty")
