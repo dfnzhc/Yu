@@ -163,7 +163,7 @@ void VulkanPipeline::drawIndexed(VkCommandBuffer cmdBuffer,
     }
 
     vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &pVertexBuffer->buffer, &pVertexBuffer->offset);
-    vkCmdBindIndexBuffer(cmdBuffer, pIndexBuffer->buffer, pIndexBuffer->offset, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(cmdBuffer, pIndexBuffer->buffer, pIndexBuffer->offset, VK_INDEX_TYPE_UINT32);
 
     // 绑定流水线
     vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
