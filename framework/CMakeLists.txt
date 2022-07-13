@@ -54,6 +54,7 @@ set(VULKAN_FILES
         RHI/vulkan/imgui.hpp
         RHI/vulkan/buffer.hpp
         RHI/vulkan/imgui_impl_vulkan.h
+        RHI/vulkan/model_obj.hpp
 
         # source files
         RHI/vulkan/instance_properties.cpp 
@@ -82,6 +83,7 @@ set(VULKAN_FILES
         RHI/vulkan/imgui.cpp
         RHI/vulkan/imgui_impl_vulkan.cpp
         RHI/vulkan/buffer.cpp
+        RHI/vulkan/model_obj.cpp 
         )
 
 # set the group of the source files
@@ -118,4 +120,6 @@ target_link_libraries(${PROJECT_NAME}
         imgui
         vma
         stb
+        tinyobj
+        tinygltf
         )
