@@ -104,12 +104,9 @@ public:
                                    nullptr);
         }
 
-        model_.load("cubebox_subdivided.obj", "cubebox/mesh/");
         std::vector<VkVertexInputBindingDescription> bindingDesc;
         std::vector<VkVertexInputAttributeDescription> attrDesc;
-        model_.setPipelineVertexInput(bindingDesc, attrDesc);
-        model_.allocMemory(static_buffer_);
-        static_buffer_.uploadData(upload_heap_.getCommandBuffer());
+        ModelObj::SetPipelineVertexInput(bindingDesc, attrDesc);
 
         pipeline_builder_.create(device);
         pipeline_builder_.setShader({"05_modelObj.vert", "05_modelObj.frag"});
@@ -204,7 +201,9 @@ public:
         mats[0] = mouse_tracker_->camera_->view_mat;
         mats[1] = mouse_tracker_->camera_->proj_mat;
 
-        model_.draw(pipeline_, cmdBuffer, &constantBufferInfo, descriptor_set_);
+        if (model_ != nullptr) {
+            model_->draw(pipeline_, cmdBuffer, &constantBufferInfo, descriptor_set_);
+        }
         // 绘制设定的流水线
 //        pipeline_.drawIndexed(cmdBuffer,
 //                              static_cast<uint32_t>(indices.size()),
@@ -227,13 +226,42 @@ public:
         Renderer::render();
     }
 
+    int loadAssets(int loadingStage) override
+    {
+        const int stages = 12;
+        // show loading progress
+        ImGui::OpenPopup("Loading");
+        if (ImGui::BeginPopupModal("Loading", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            float progress = static_cast<float>(loadingStage) / static_cast<float>(stages);
+            ImGui::ProgressBar(progress, ImVec2(0.f, 0.f), nullptr);
+            ImGui::EndPopup();
+        }
+
+        if (loadingStage == 0) {
+        } else if (loadingStage == 5) {
+            model_ = std::make_unique<yu::vk::ModelObj>();
+            model_->load("cubebox_subdivided.obj", "cubebox/mesh/");
+            model_->allocMemory(static_buffer_);
+            static_buffer_.uploadData(upload_heap_.getCommandBuffer());
+            upload_heap_.flushAndFinish();
+        } else if (loadingStage == 6) {
+            // flush 内存，释放暂存堆
+            upload_heap_.flushAndFinish();
+            static_buffer_.freeUploadHeap();
+
+            return 0;
+        }
+
+        return loadingStage + 1;
+    }
+
 private:
     VulkanPipeline pipeline_;
     PipelineBuilder pipeline_builder_;
 
 //    ImGUI imGui_{};
 
-    yu::vk::ModelObj model_{};
+    std::unique_ptr<yu::vk::ModelObj> model_ = nullptr;
 
     Texture texture_;
     VkImageView texture_view_;
@@ -292,23 +320,11 @@ protected:
 
     void buildGUI()
     {
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
         ImGui::Begin("Debug");
         ImGui::Text("[FPS]: %d", static_cast<int>(uiStates.frameTimes.back()));
 
         ImGui::PlotLines("Frame Times", &uiStates.frameTimes[0], 50, 0, "", uiStates.frameTimeMin, uiStates.frameTimeMax, ImVec2(0, 80));
         ImGui::End();
-
-        // Render to generate draw buffers
-        ImGui::Render();
-
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-        }
     }
 
 };
