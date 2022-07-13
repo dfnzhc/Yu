@@ -77,8 +77,8 @@ public:
 
     void load(std::string_view fileName, std::string_view basePath = "", bool triangulate = true);
 
-    void setPipelineVertexInput(std::vector<VkVertexInputBindingDescription>& bindingDesc,
-                                std::vector<VkVertexInputAttributeDescription>& attrDesc);
+    static void SetPipelineVertexInput(std::vector<VkVertexInputBindingDescription>& bindingDesc,
+                                       std::vector<VkVertexInputAttributeDescription>& attrDesc);
 
     void allocMemory(StaticBuffer& staticBuffer);
 

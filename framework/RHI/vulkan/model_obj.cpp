@@ -86,7 +86,7 @@ void ModelObj::load(std::string_view fileName, std::string_view basePath, bool t
     }
 }
 
-void ModelObj::setPipelineVertexInput(std::vector<VkVertexInputBindingDescription>& bindingDesc,
+void ModelObj::SetPipelineVertexInput(std::vector<VkVertexInputBindingDescription>& bindingDesc,
                                       std::vector<VkVertexInputAttributeDescription>& attrDesc)
 {
     bindingDesc = {VertexObj::getBindingDescription()};
