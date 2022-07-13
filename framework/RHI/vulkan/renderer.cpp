@@ -88,4 +88,9 @@ void Renderer::createUI(const VulkanInstance& instance, GLFWwindow* window)
     imGui_->create(instance, *device_, swap_chain_->getRenderPass(), upload_heap_, window);
 }
 
+int Renderer::loadAssets(int loadingStage)
+{
+    return 0;
+}
+
 } // namespace yu::vk

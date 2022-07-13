@@ -138,6 +138,14 @@ void ImGUI::destroy()
 
 void ImGUI::draw(VkCommandBuffer cmdBuffer)
 {
+    // Render to generate draw buffers
+    ImGui::Render();
+
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
+
     ImDrawData* draw_data = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(draw_data, cmdBuffer);
 }

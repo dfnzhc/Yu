@@ -34,6 +34,7 @@ public:
     void resize(uint32_t width, uint32_t height);
 
     virtual void render();
+    virtual int loadAssets(int loadingStage);
     
     void createUI(const VulkanInstance& instance, GLFWwindow* window);
     

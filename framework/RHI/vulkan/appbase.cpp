@@ -8,6 +8,7 @@
 #include <logger.hpp>
 #include <glfw_window.hpp>
 #include <imgui.h>
+#include <common/imgui_impl_glfw.h>
 
 namespace yu::vk {
 
@@ -19,7 +20,7 @@ bool AppBase::prepare(San::Platform& platform)
 void AppBase::setup()
 {
     Application::setup();
-    
+
     initVulkan();
 
     LOG_INFO("Successfully set up vulkan");
@@ -40,7 +41,7 @@ void AppBase::setup()
         LOG_FATAL("Renderer has not been setup");
     }
     renderer_->create(*device_, swap_chain_.get(), *mouse_tracker_);
-    auto* glfwWindow = static_cast<San::GLFW_Window*>(platform_->getWindow());
+    auto* glfwWindow = dynamic_cast<San::GLFW_Window*>(platform_->getWindow());
     renderer_->createUI(*instance_, glfwWindow->getGLFWHandle());
     renderer_->createWindowSizeDependency(width, height);
 }
@@ -48,6 +49,19 @@ void AppBase::setup()
 void AppBase::update(float delta_time)
 {
     Application::update(delta_time);
+
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    static bool loadingAssets = true;
+    if (loadingAssets) {
+        static int loadingStage = 0;
+        loadingStage = renderer_->loadAssets(loadingStage);
+        if (loadingStage == 0) {
+            loadingAssets = false;
+        }
+    }
 }
 
 void AppBase::finish()
@@ -72,7 +86,7 @@ bool AppBase::resize(uint32_t width, uint32_t height)
     swap_chain_->destroyWindowSizeDependency();
     instance_->createSurface(platform_->getWindow());
     swap_chain_->createWindowSizeDependency(instance_->getSurface());
-    
+
     renderer_->resize(width, height);
 
     return true;
@@ -110,7 +124,7 @@ void AppBase::input_event(const San::InputEvent& input_event)
         if (io.WantCaptureMouse) {
             return;
         }
-        
+
         if (mouse_event.isEvent(MouseButton::Left, MouseAction::PressedMove)) {
             mouse_tracker_->update(static_cast<int>(mouse_event.pos_x),
                                    static_cast<int>(mouse_event.pos_y));
