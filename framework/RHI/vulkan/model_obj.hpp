@@ -7,6 +7,9 @@
 #include "static_buffer.hpp"
 #include "pipeline.hpp"
 
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
+#endif
 #include <glm/gtx/hash.hpp>
 
 namespace yu::vk {
@@ -14,11 +17,11 @@ namespace yu::vk {
 // 简单实现的 obj 模型类，用于加载一些只有顶点颜色的模型，纹理需要额外设置
 struct VertexObj
 {
-    glm::vec3 pos;
-    glm::vec3 normal;
-    glm::vec2 uv;
+    glm::vec3 pos{};
+    glm::vec3 normal{};
+    glm::vec2 uv{};
 
-    glm::vec3 color;
+    glm::vec3 color{};
 
     static VkVertexInputBindingDescription getBindingDescription()
     {

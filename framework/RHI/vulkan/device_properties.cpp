@@ -45,7 +45,7 @@ std::pair<std::string, std::string> DeviceProperties::getDeviceInfo() const
     return {device_properties.deviceName, apiVersion};
 }
 
-bool DeviceProperties::getMemoryType(uint32_t typeBits, VkFlags mask, uint32_t* typeIndex)
+bool DeviceProperties::getMemoryType(uint32_t typeBits, VkFlags mask, uint32_t* typeIndex) const
 {
     // 搜索设备的储存类型中是否有 mask 所指定的，若有则返回它的索引
     for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++) {

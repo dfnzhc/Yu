@@ -5,7 +5,9 @@
 #include <logger.hpp>
 #include "model_obj.hpp"
 
+#ifndef TINYOBJLOADER_IMPLEMENTATION
 #define TINYOBJLOADER_IMPLEMENTATION
+#endif
 #include <tiny_obj_loader.h>
 #include <common/common.hpp>
 

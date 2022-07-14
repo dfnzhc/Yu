@@ -12,8 +12,8 @@ namespace yu::vk {
  * @param flags 一些额外的信息
  */
 VkBufferCreateInfo makeBufferCreateInfo(VkDeviceSize size,
-                                               VkBufferUsageFlags usage,
-                                               VkBufferCreateFlags flags)
+                                        VkBufferUsageFlags usage,
+                                        VkBufferCreateFlags flags)
 {
     VkBufferCreateInfo createInfo = {VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
     createInfo.size = size;
@@ -30,10 +30,10 @@ VkBufferCreateInfo makeBufferCreateInfo(VkDeviceSize size,
  * @param offset 视图所指定内存在缓冲区的偏移
  */
 VkBufferViewCreateInfo makeBufferViewCreateInfo(VkBuffer buffer,
-                                                       VkFormat format,
-                                                       VkDeviceSize range,
-                                                       VkDeviceSize offset,
-                                                       VkBufferViewCreateFlags flags)
+                                                VkFormat format,
+                                                VkDeviceSize range,
+                                                VkDeviceSize offset,
+                                                VkBufferViewCreateFlags flags)
 {
     VkBufferViewCreateInfo createInfo = {VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO};
     createInfo.buffer = buffer;
@@ -49,8 +49,8 @@ VkBufferViewCreateInfo makeBufferViewCreateInfo(VkBuffer buffer,
  * @brief 通过描述符的缓冲区信息来设置缓冲区视图创建信息
  */
 VkBufferViewCreateInfo makeBufferViewCreateInfo(const VkDescriptorBufferInfo& descrInfo,
-                                                       VkFormat fmt,
-                                                       VkBufferViewCreateFlags flags)
+                                                VkFormat fmt,
+                                                VkBufferViewCreateFlags flags)
 {
     VkBufferViewCreateInfo createInfo = {VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO};
     createInfo.buffer = descrInfo.buffer;

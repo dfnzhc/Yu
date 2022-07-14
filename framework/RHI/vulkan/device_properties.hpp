@@ -13,7 +13,7 @@ struct DeviceProperties : public Properties
     void init(VkPhysicalDevice physicalDevice);
 
     std::pair<std::string, std::string> getDeviceInfo() const;
-    bool getMemoryType(uint32_t typeBits, VkFlags mask, uint32_t* typeIndex);
+    bool getMemoryType(uint32_t typeBits, VkFlags mask, uint32_t* typeIndex) const;
 
     VkPhysicalDevice physical_device{};
 
