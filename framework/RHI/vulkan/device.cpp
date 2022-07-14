@@ -239,13 +239,13 @@ VkResult VulkanDevice::createBuffer(VkBufferUsageFlags usageFlags,
     // 创建支持缓冲区句柄的内存
     VkMemoryRequirements memReqs;
     vkGetBufferMemoryRequirements(device_, *buffer, &memReqs);
-    
+
     VkMemoryAllocateInfo memAlloc = memoryAllocateInfo();
     memAlloc.allocationSize = memReqs.size;
     // 找到一个符合缓冲区属性的内存类型索引
     bool pass = properties_.getMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags, &memAlloc.memoryTypeIndex);
     assert(pass && "No mappable, coherent memory");
-    
+
     // 如果缓冲区设置了VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT，也需要在分配时启用相应的标志
     VkMemoryAllocateFlagsInfoKHR allocFlagsInfo{};
     if (usageFlags & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
@@ -269,8 +269,7 @@ VkResult VulkanDevice::createBuffer(VkBufferUsageFlags usageFlags,
             vkFlushMappedMemoryRanges(device_, 1, &mappedRange);
         }
         vkUnmapMemory(device_, *memory);
-    }
-    else if (pData != nullptr){
+    } else if (pData != nullptr) {
         VK_CHECK(vkMapMemory(device_, *memory, 0, memReqs.size, 0, pData));
     }
 
@@ -436,5 +435,34 @@ void VulkanDevice::flushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue que
 {
     return flushCommandBuffer(commandBuffer, queue, command_pool_, free);
 }
+
+#ifdef USE_VMA
+VkResult VulkanDevice::createBufferVMA(VkBufferUsageFlags usageFlags,
+                                       VmaMemoryUsage vmaMemoryUsage,
+                                       VkDeviceSize size,
+                                       VkBuffer* pBuffer,
+                                       VmaAllocation* pAllocation,
+                                       bool bMap,
+                                       void** pData,
+                                       std::string_view name,
+                                       VmaAllocationCreateFlags allocationFlags) const
+{
+    auto bufferInfo = bufferCreateInfo(usageFlags, size);
+
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage = vmaMemoryUsage;
+    allocInfo.flags = allocationFlags;
+    allocInfo.pUserData = const_cast<char*>(name.data());
+
+    auto allocator = const_cast<VmaAllocator>(allocator_);
+    VK_CHECK(vmaCreateBuffer(allocator, &bufferInfo, &allocInfo, pBuffer, pAllocation, nullptr));
+
+    if (bMap) {
+        VK_CHECK(vmaMapMemory(allocator, *pAllocation, pData));
+    }
+
+    return VK_SUCCESS;
+}
+#endif
 
 } // yu::vk

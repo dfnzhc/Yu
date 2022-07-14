@@ -4,9 +4,9 @@
 
 #pragma once
 
-//#ifndef USE_VMA
-//#define USE_VMA
-//#endif
+#ifndef USE_VMA
+#define USE_VMA
+#endif
 
 #ifdef USE_VMA
 #include <vk_mem_alloc.h>
@@ -43,6 +43,16 @@ public:
 
 #ifdef USE_VMA
     VmaAllocator getAllocator() const { return allocator_; }
+
+    VkResult createBufferVMA(VkBufferUsageFlags usageFlags,
+                             VmaMemoryUsage vmaMemoryUsage,
+                             VkDeviceSize size,
+                             VkBuffer* pBuffer,
+                             VmaAllocation* pAllocation,
+                             bool bMap,
+                             void** pData = nullptr,
+                             std::string_view name = "",
+                             VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT) const;
 #endif
 
     // pipeline cache
@@ -61,13 +71,12 @@ public:
                           VkDeviceSize size,
                           void* data = nullptr);
     void copyBuffer(VulkanBuffer* src, VulkanBuffer* dst, VkQueue queue, VkBufferCopy* copyRegion = nullptr);
-    
 
     VkCommandBuffer createCommandBuffer(VkCommandBufferLevel level, VkCommandPool pool, bool begin = false);
     VkCommandBuffer createCommandBuffer(VkCommandBufferLevel level, bool begin = false);
     void flushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue, VkCommandPool pool, bool free = true);
     void flushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue, bool free = true);
-    
+
 private:
     void setEssentialExtensions();
     std::vector<VkDeviceQueueCreateInfo> getDeviceQueueInfos(VkSurfaceKHR surface);
@@ -90,9 +99,9 @@ private:
     uint32_t present_queue_index_{UINT32_MAX};
 
     VkPipelineCache pipeline_cache_{};
-    
+
     VkCommandPool command_pool_{};
-    
+
 #ifdef USE_VMA
     VmaAllocator allocator_ = nullptr;
 #endif

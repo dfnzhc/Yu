@@ -18,30 +18,20 @@ void StaticBuffer::create(const VulkanDevice& device, uint32_t totalSize, bool b
 
     // 在系统上创建缓冲区，绑定并进行映射
     {
-#ifdef USE_VMA
-        auto bufferInfo = bufferCreateInfo();
-        bufferInfo.size = totalSize;
-        bufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        if (bUseStaging)
-            bufferInfo.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        VmaAllocationCreateInfo allocInfo = {};
-        allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-        allocInfo.flags = VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT;
-        allocInfo.pUserData = const_cast<char*>(name.data());
-
-        VK_CHECK(vmaCreateBuffer(device.getAllocator(),
-                                 &bufferInfo,
-                                 &allocInfo,
-                                 &buffer_,
-                                 &buffer_allocation_,
-                                 nullptr));
-
-        VK_CHECK(vmaMapMemory(device.getAllocator(), buffer_allocation_, (void**) &data_));
-#else
         VkBufferUsageFlags usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
         if (bUseStaging)
             usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
+#ifdef USE_VMA
+        VK_CHECK(device_->createBufferVMA(usage,
+                                          VMA_MEMORY_USAGE_CPU_TO_GPU,
+                                          total_size_,
+                                          &buffer_,
+                                          &buffer_allocation_,
+                                          true,
+                                          (void**) &data_,
+                                          name));
+#else
         VK_CHECK(device_->createBuffer(usage,
                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                                        total_size_,
@@ -55,22 +45,14 @@ void StaticBuffer::create(const VulkanDevice& device, uint32_t totalSize, bool b
     // 创建显存上的缓冲区，前面创建的缓冲区成为暂存缓冲区
     if (bUseStaging) {
 #ifdef USE_VMA
-        auto bufferInfo = bufferCreateInfo();
-        bufferInfo.size = totalSize;
-        bufferInfo.usage =
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-        VmaAllocationCreateInfo allocInfo = {};
-        allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-        allocInfo.flags = VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT;
-        allocInfo.pUserData = const_cast<char*>(name.data());
-
-        VK_CHECK(vmaCreateBuffer(device.getAllocator(),
-                                 &bufferInfo,
-                                 &allocInfo,
-                                 &video_buffer_,
-                                 &video_allocation_,
-                                 nullptr));
+        VK_CHECK(device_->createBufferVMA(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                      VMA_MEMORY_USAGE_GPU_ONLY,
+                                      total_size_,
+                                      &video_buffer_,
+                                      &video_allocation_,
+                                      false,
+                                      nullptr,
+                                      name));
 #else
         VK_CHECK(device_->createBuffer(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

@@ -20,18 +20,14 @@ void DynamicBuffer::create(const VulkanDevice& device, uint32_t numberOfFrames, 
 
     // 创建一个可用于处理 uniform、索引、顶点数据的缓冲区
 #ifdef USE_VMA
-    auto bufferInfo = bufferCreateInfo(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                       total_size_);
-
-    VmaAllocationCreateInfo allocInfo = {};
-    allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-    allocInfo.flags = VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT;
-    allocInfo.pUserData = const_cast<char*>(name.data());
-
-    auto allocator = const_cast<VmaAllocator>(device_->getAllocator());
-    VK_CHECK(vmaCreateBuffer(allocator, &bufferInfo, &allocInfo, &buffer_, &buffer_allocation_, nullptr));
-
-    VK_CHECK(vmaMapMemory(allocator, buffer_allocation_, (void**) &data_));
+    VK_CHECK(device_->createBufferVMA(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                      VMA_MEMORY_USAGE_CPU_TO_GPU,
+                                      total_size_,
+                                      &buffer_,
+                                      &buffer_allocation_,
+                                      true,
+                                      (void**) &data_,
+                                      name));
 #else
     VK_CHECK(device_->createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -49,7 +45,7 @@ void DynamicBuffer::destroy()
     auto allocator = const_cast<VmaAllocator>(device_->getAllocator());
     vmaUnmapMemory(allocator, buffer_allocation_);
     vmaDestroyBuffer(allocator, buffer_, buffer_allocation_);
-    
+
     buffer_ = VK_NULL_HANDLE;
     buffer_allocation_ = VK_NULL_HANDLE;
 #else
