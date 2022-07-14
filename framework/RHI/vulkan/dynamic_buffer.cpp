@@ -14,9 +14,9 @@ void DynamicBuffer::create(const VulkanDevice& device, uint32_t numberOfFrames, 
 {
     device_ = &device;
 
-    total_size_ = AlignUp(totalSize, 256u);
+    total_size_ = static_cast<uint64_t>(AlignUp(totalSize, 256u));
 
-    mem_.create(numberOfFrames, total_size_);
+    mem_.create(numberOfFrames, static_cast<uint32_t>(total_size_));
 
     // 创建一个可用于处理 uniform、索引、顶点数据的缓冲区
 #ifdef USE_VMA
@@ -33,36 +33,13 @@ void DynamicBuffer::create(const VulkanDevice& device, uint32_t numberOfFrames, 
 
     VK_CHECK(vmaMapMemory(allocator, buffer_allocation_, (void**) &data_));
 #else
-    VkBufferCreateInfo buf_info = {};
-    buf_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    buf_info.pNext = nullptr;
-    buf_info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    buf_info.size = total_size_;
-    buf_info.queueFamilyIndexCount = 0;
-    buf_info.pQueueFamilyIndices = nullptr;
-    buf_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    buf_info.flags = 0;
-    VK_CHECK(vkCreateBuffer(device_->getHandle(), &buf_info, nullptr, &buffer_));
-
-    VkMemoryRequirements mem_reqs;
-    vkGetBufferMemoryRequirements(device_->getHandle(), buffer_, &mem_reqs);
-
-    VkMemoryAllocateInfo alloc_info = {};
-    alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    alloc_info.pNext = nullptr;
-    alloc_info.memoryTypeIndex = 0;
-    alloc_info.memoryTypeIndex = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    alloc_info.allocationSize = mem_reqs.size;
-    alloc_info.memoryTypeIndex = 0;
-
-    bool pass = device_->getProperties().getMemoryType(mem_reqs.memoryTypeBits,
-                                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                                       &alloc_info.memoryTypeIndex);
-    assert(pass && "No mappable, coherent memory");
-
-    VK_CHECK(vkAllocateMemory(device_->getHandle(), &alloc_info, nullptr, &device_memory_));
-    VK_CHECK(vkMapMemory(device_->getHandle(), device_memory_, 0, mem_reqs.size, 0, (void**) &data_));
-    VK_CHECK(vkBindBufferMemory(device_->getHandle(), buffer_, device_memory_, 0));
+    VK_CHECK(device_->createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                   total_size_,
+                                   &buffer_,
+                                   &device_memory_,
+                                   false,
+                                   (void**) &data_));
 #endif
 }
 
@@ -79,7 +56,7 @@ void DynamicBuffer::destroy()
     vkUnmapMemory(device_->getHandle(), device_memory_);
     vkFreeMemory(device_->getHandle(), device_memory_, nullptr);
     vkDestroyBuffer(device_->getHandle(), buffer_, nullptr);
-    
+
     buffer_ = VK_NULL_HANDLE;
     device_memory_ = VK_NULL_HANDLE;
 #endif

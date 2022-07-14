@@ -218,7 +218,8 @@ void VulkanDevice::destroyPipelineCache()
 * @param size 缓冲区的大小，单位是byes
 * @param buffer 指向获取的缓冲区句柄的指针
 * @param memory 指向获取的内存句柄的指针
-* @param data 指向创建后应该被复制到缓冲区的数据（可选，如果不设置，没有数据被复制过来）。
+* @param bCopyData 创建完缓冲区后是否拷贝数据，如果为 false：那么把缓冲区映射到 pData 上。
+* @param pData 指向创建后应该被复制到缓冲区的数据（可选，如果不设置，没有数据被复制过来）。
 *
 * @return VK_SUCCESS 如果缓冲区句柄和内存已经被创建，并且（可选择传递）数据已经被复制，则返回VK_SUCCESS
 */
@@ -227,7 +228,8 @@ VkResult VulkanDevice::createBuffer(VkBufferUsageFlags usageFlags,
                                     VkDeviceSize size,
                                     VkBuffer* buffer,
                                     VkDeviceMemory* memory,
-                                    void* data)
+                                    bool bCopyData,
+                                    void** pData) const
 {
     // 创建缓冲区句柄
     VkBufferCreateInfo bufCreateInfo = bufferCreateInfo(usageFlags, size);
@@ -236,12 +238,14 @@ VkResult VulkanDevice::createBuffer(VkBufferUsageFlags usageFlags,
 
     // 创建支持缓冲区句柄的内存
     VkMemoryRequirements memReqs;
-    VkMemoryAllocateInfo memAlloc = memoryAllocateInfo();
     vkGetBufferMemoryRequirements(device_, *buffer, &memReqs);
+    
+    VkMemoryAllocateInfo memAlloc = memoryAllocateInfo();
     memAlloc.allocationSize = memReqs.size;
     // 找到一个符合缓冲区属性的内存类型索引
     bool pass = properties_.getMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags, &memAlloc.memoryTypeIndex);
-    assert(pass);
+    assert(pass && "No mappable, coherent memory");
+    
     // 如果缓冲区设置了VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT，也需要在分配时启用相应的标志
     VkMemoryAllocateFlagsInfoKHR allocFlagsInfo{};
     if (usageFlags & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
@@ -252,10 +256,10 @@ VkResult VulkanDevice::createBuffer(VkBufferUsageFlags usageFlags,
     VK_CHECK(vkAllocateMemory(device_, &memAlloc, nullptr, memory));
 
     // 如果传递了一个指向缓冲区数据的指针，则映射缓冲区并复制数据
-    if (data != nullptr) {
+    if (bCopyData) {
         void* mapped;
         VK_CHECK(vkMapMemory(device_, *memory, 0, size, 0, &mapped));
-        memcpy(mapped, data, size);
+        std::memcpy(mapped, *pData, size);
         // 如果没有要求主机一致性，则进行手动刷新，使写入的内容可见
         if ((memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0) {
             VkMappedMemoryRange mappedRange = mappedMemoryRange();
@@ -265,6 +269,9 @@ VkResult VulkanDevice::createBuffer(VkBufferUsageFlags usageFlags,
             vkFlushMappedMemoryRanges(device_, 1, &mappedRange);
         }
         vkUnmapMemory(device_, *memory);
+    }
+    else if (pData != nullptr){
+        VK_CHECK(vkMapMemory(device_, *memory, 0, memReqs.size, 0, pData));
     }
 
     // 将内存附加到缓冲区对象上

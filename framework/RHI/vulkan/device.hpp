@@ -4,9 +4,9 @@
 
 #pragma once
 
-#ifndef USE_VMA
-#define USE_VMA
-#endif
+//#ifndef USE_VMA
+//#define USE_VMA
+//#endif
 
 #ifdef USE_VMA
 #include <vk_mem_alloc.h>
@@ -53,7 +53,8 @@ public:
                           VkDeviceSize size,
                           VkBuffer* buffer,
                           VkDeviceMemory* memory,
-                          void* data = nullptr);
+                          bool bCopyData,
+                          void** pData) const;
     VkResult createBuffer(VkBufferUsageFlags usageFlags,
                           VkMemoryPropertyFlags memoryPropertyFlags,
                           VulkanBuffer* buffer,

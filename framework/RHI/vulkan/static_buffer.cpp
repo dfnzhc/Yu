@@ -38,40 +38,17 @@ void StaticBuffer::create(const VulkanDevice& device, uint32_t totalSize, bool b
 
         VK_CHECK(vmaMapMemory(device.getAllocator(), buffer_allocation_, (void**) &data_));
 #else
-        auto buf_info = bufferCreateInfo();
-        buf_info.pNext = nullptr;
-        buf_info.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        VkBufferUsageFlags usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
         if (bUseStaging)
-            buf_info.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        buf_info.size = totalSize;
-        buf_info.queueFamilyIndexCount = 0;
-        buf_info.pQueueFamilyIndices = nullptr;
-        buf_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        buf_info.flags = 0;
-        VK_CHECK(vkCreateBuffer(device.getHandle(), &buf_info, nullptr, &buffer_));
+            usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
-        // 在系统上分配内存
-        VkMemoryRequirements mem_reqs;
-        vkGetBufferMemoryRequirements(device.getHandle(), buffer_, &mem_reqs);
-
-        auto alloc_info = memoryAllocateInfo();
-        alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        alloc_info.pNext = nullptr;
-        alloc_info.memoryTypeIndex = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        alloc_info.allocationSize = mem_reqs.size;
-
-        bool pass = device_->getProperties().getMemoryType(mem_reqs.memoryTypeBits,
-                                                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                                                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                                           &alloc_info.memoryTypeIndex);
-        assert(pass && "No mappable, coherent memory");
-        VK_CHECK(vkAllocateMemory(device.getHandle(), &alloc_info, nullptr, &device_memory_));
-
-        // 绑定缓冲区
-        VK_CHECK(vkBindBufferMemory(device.getHandle(), buffer_, device_memory_, 0));
-
-        // 映射该缓冲区，保持映射的状态
-        VK_CHECK(vkMapMemory(device.getHandle(), device_memory_, 0, mem_reqs.size, 0, (void**) &data_));
+        VK_CHECK(device_->createBuffer(usage,
+                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                       total_size_,
+                                       &buffer_,
+                                       &device_memory_,
+                                       false,
+                                       (void**) &data_));
 #endif
     }
 
@@ -95,37 +72,13 @@ void StaticBuffer::create(const VulkanDevice& device, uint32_t totalSize, bool b
                                  &video_allocation_,
                                  nullptr));
 #else
-        auto buf_info = bufferCreateInfo();
-        buf_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        buf_info.pNext = nullptr;
-        buf_info.usage =
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-        buf_info.size = totalSize;
-        buf_info.queueFamilyIndexCount = 0;
-        buf_info.pQueueFamilyIndices = nullptr;
-        buf_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        buf_info.flags = 0;
-        VK_CHECK(vkCreateBuffer(device.getHandle(), &buf_info, nullptr, &video_buffer_));
-
-        // allocate the buffer in VIDEO memory
-        VkMemoryRequirements mem_reqs;
-        vkGetBufferMemoryRequirements(device.getHandle(), video_buffer_, &mem_reqs);
-
-        VkMemoryAllocateInfo alloc_info = {};
-        alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        alloc_info.pNext = nullptr;
-        alloc_info.memoryTypeIndex = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        alloc_info.allocationSize = mem_reqs.size;
-
-        bool pass = device_->getProperties().getMemoryType(mem_reqs.memoryTypeBits,
-                                                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                                                           &alloc_info.memoryTypeIndex);
-        assert(pass && "No mappable, coherent memory");
-
-        VK_CHECK(vkAllocateMemory(device.getHandle(), &alloc_info, nullptr, &video_memory_));
-
-        // bind buffer
-        VK_CHECK(vkBindBufferMemory(device.getHandle(), video_buffer_, video_memory_, 0));
+        VK_CHECK(device_->createBuffer(VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                       total_size_,
+                                       &video_buffer_,
+                                       &video_memory_,
+                                       false,
+                                       nullptr));
 #endif
     }
 }

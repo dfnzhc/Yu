@@ -12,7 +12,7 @@ namespace yu::vk {
 void UploadHeap::create(const VulkanDevice& device, uint64_t totalSize)
 {
     device_ = &device;
-    
+
     allocating_.reset();
     flushing_.reset();
 
@@ -29,34 +29,17 @@ void UploadHeap::create(const VulkanDevice& device, uint64_t totalSize)
 
     // 创建用于分配的缓冲区
     {
-        auto bufferInfo = bufferCreateInfo();
-        bufferInfo.size = totalSize;
-        bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        VK_CHECK(vkCreateBuffer(device_->getHandle(), &bufferInfo, nullptr, &buffer_));
-
+        VK_CHECK(device_->createBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                                       totalSize,
+                                       &buffer_,
+                                       &device_memory_,
+                                       false,
+                                       (void**) (&data_begin)));
+        
         VkMemoryRequirements memReqs;
         vkGetBufferMemoryRequirements(device_->getHandle(), buffer_, &memReqs);
 
-        auto allocInfo = memoryAllocateInfo();
-        allocInfo.allocationSize = memReqs.size;
-        allocInfo.memoryTypeIndex = 0;
-
-        bool pass = device_->getProperties().getMemoryType(memReqs.memoryTypeBits,
-                                                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                                                           &allocInfo.memoryTypeIndex);
-        assert(pass && "No mappable, coherent memory");
-
-        VK_CHECK(vkAllocateMemory(device_->getHandle(), &allocInfo, nullptr, &device_memory_));
-
-        VK_CHECK(vkBindBufferMemory(device_->getHandle(), buffer_, device_memory_, 0));
-
-        VK_CHECK(vkMapMemory(device_->getHandle(),
-                             device_memory_,
-                             0,
-                             memReqs.size,
-                             0,
-                             (void**) (&data_begin)));
         data_curr = data_begin;
         data_end = data_begin + memReqs.size;
     }
@@ -238,9 +221,9 @@ void UploadHeap::flushAndFinish(bool bDoBarriers)
     // 重新设置，让命令缓冲区开始记录
     auto beginInfo = commandBufferBeginInfo();
     VK_CHECK(vkBeginCommandBuffer(command_buffer_, &beginInfo));
-    
+
     data_curr = data_begin;
-    
+
     // flush 操作完成，计数器减一
     flushing_.dec();
 }
