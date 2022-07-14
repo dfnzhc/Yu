@@ -36,7 +36,7 @@ void UploadHeap::create(const VulkanDevice& device, uint64_t totalSize)
                                        &device_memory_,
                                        false,
                                        (void**) (&data_begin)));
-        
+
         VkMemoryRequirements memReqs;
         vkGetBufferMemoryRequirements(device_->getHandle(), buffer_, &memReqs);
 

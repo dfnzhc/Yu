@@ -244,7 +244,7 @@ public:
             model_->allocMemory(static_buffer_);
             static_buffer_.uploadData(upload_heap_.getCommandBuffer());
             upload_heap_.flushAndFinish();
-        } else if (loadingStage == 6) {
+        } else if (loadingStage == 9) {
             // flush 内存，释放暂存堆
             upload_heap_.flushAndFinish();
             static_buffer_.freeUploadHeap();
