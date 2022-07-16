@@ -116,22 +116,6 @@ public:
         pipeline_.create(device,
                          swapChain->getRenderPass(),
                          descriptor_set_layout_, pipeline_builder_);
-
-//        // 分配内存并传递顶点信息
-//        static_buffer_.allocBuffer(static_cast<uint32_t>(vertices.size()),
-//                                   sizeof(Vertex),
-//                                   vertices.data(),
-//                                   &vertex_buffer_info_);
-//
-//        // 分配内存并传递索引信息
-//        static_buffer_.allocBuffer(static_cast<uint32_t>(indices.size()),
-//                                   sizeof(Vertex),
-//                                   indices.data(),
-//                                   &index_buffer_info_);
-
-
-//        imGui_.create(device, constant_buffer_, swapChain->getRenderPass(), upload_heap_);
-
         static_buffer_.uploadData(upload_heap_.getCommandBuffer());
         upload_heap_.flushAndFinish();
     }
@@ -183,7 +167,7 @@ public:
             renderPassInfo.renderArea.extent = {width_, height_};
 
             std::vector<VkClearValue> clearColor(2);
-            clearColor[0].color = {0.2f, 0.3f, 0.7f, 1.0f};
+            clearColor[0].color = {0.1f, 0.2f, 0.23f, 1.0f};
             clearColor[1].depthStencil = {1.0f, 0};
             renderPassInfo.clearValueCount = static_cast<uint32_t>(clearColor.size());
             renderPassInfo.pClearValues = clearColor.data();
@@ -204,13 +188,6 @@ public:
         if (model_ != nullptr) {
             model_->draw(pipeline_, cmdBuffer, &constantBufferInfo, descriptor_set_);
         }
-        // 绘制设定的流水线
-//        pipeline_.drawIndexed(cmdBuffer,
-//                              static_cast<uint32_t>(indices.size()),
-//                              &vertex_buffer_info_,
-//                              &index_buffer_info_,
-//                              &constantBufferInfo,
-//                              descriptor_set_);
 
         imGui_->draw(cmdBuffer);
 
