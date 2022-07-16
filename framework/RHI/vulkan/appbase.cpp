@@ -137,6 +137,16 @@ void AppBase::input_event(const San::InputEvent& input_event)
         if (mouse_event.isEvent(MouseButton::Middle, MouseAction::Scroll)) {
             mouse_tracker_->zoom(mouse_event.scroll_dir);
         }
+
+        if (mouse_event.isEvent(MouseButton::Right, MouseAction::PressedMove)) {
+            mouse_tracker_->update(static_cast<int>(mouse_event.pos_x),
+                                   static_cast<int>(mouse_event.pos_y),
+                                   CameraUpdateOp::Offset);
+        }
+
+        if (mouse_event.isEvent(MouseButton::Right, MouseAction::Release)) {
+            mouse_tracker_->stopTracking();
+        }
 //        LOG_INFO("[Mouse] key: {}, action: {} ({}.{} {})",
 //                 GetButtonString(mouse_event.button),
 //                 GetActionString(mouse_event.action), mouse_event.pos_x, mouse_event.pos_y, mouse_event.scroll_dir);

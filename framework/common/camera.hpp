@@ -5,6 +5,7 @@
 #pragma once
 
 #include "math_utils.hpp"
+#include <logger.hpp>
 
 namespace yu {
 
@@ -26,6 +27,7 @@ struct Camera
     float zNear, zFar;
 
     float rot_speed = 0.01f;
+    float offset_speed = 0.01f;
     float yaw = 0.0f;
     float pitch = 0.0f;
 
@@ -82,8 +84,9 @@ struct Camera
         vec3 viewDirLocal = PolarToVector(yaw, pitch);
 
         vec3 viewDirWorld = frame.FromLocal(viewDirLocal);
+        frame = Frame::FromCameraDirection(viewDirWorld);
         eye_pos = look_target + viewDirLocal * look_distance;
-
+        
         view_mat = glm::lookAtLH(eye_pos, look_target, glm::vec3{0, 1, 0});
     }
 
@@ -99,6 +102,19 @@ struct Camera
         }
         auto dir = glm::normalize(eye_pos - look_target);
         eye_pos = look_target + dir * look_distance;
+
+        view_mat = glm::lookAtLH(eye_pos, look_target, glm::vec3{0, 1, 0});
+    }
+
+    void offset(float dx, float dy)
+    {
+        vec3 dir = glm::normalize(look_target - eye_pos);
+        vec3 right, up;
+        CameraFrameLH(dir, right, up);
+        
+        vec3 ofs = -right * dx + up * dy;
+        look_target += ofs;
+        eye_pos += ofs;
 
         view_mat = glm::lookAtLH(eye_pos, look_target, glm::vec3{0, 1, 0});
     }

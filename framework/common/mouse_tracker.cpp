@@ -29,19 +29,16 @@ void MouseTracker::stopTracking()
     start_tracking_ = false;
 }
 
-void MouseTracker::update(int x, int y)
+void MouseTracker::update(int x, int y, CameraUpdateOp op)
 {
-    if (!start_tracking_) {
-        startTracking(x, y);
-        return;
+    updatePos(x, y);
+    
+    if (op == CameraUpdateOp::Movement) {
+        updateCamera();
     }
-
-    dx = static_cast<float>(x - prev_posX_);
-    dy = static_cast<float>(y - prev_posY_);
-    prev_posX_ = x;
-    prev_posY_ = y;
-
-    updateCamera();
+    else if (op == CameraUpdateOp::Offset) {
+        offsetCamera();
+    }
 }
 
 void MouseTracker::updateCamera()
@@ -55,12 +52,31 @@ void MouseTracker::updateCamera()
     pitch = std::max(-glm::half_pi<float>() + EPS_F, std::min(pitch, glm::half_pi<float>() - EPS_F));
 
     camera_->updateOrbit(yaw, pitch);
-    
 }
 
 void MouseTracker::zoom(float dir)
 {
     camera_->zoom(dir);
+}
+
+void MouseTracker::updatePos(int x, int y)
+{
+    if (!start_tracking_) {
+        startTracking(x, y);
+        return;
+    }
+
+    dx = static_cast<float>(x - prev_posX_);
+    dy = static_cast<float>(y - prev_posY_);
+    prev_posX_ = x;
+    prev_posY_ = y;
+}
+
+void MouseTracker::offsetCamera() const
+{
+    float speed = camera_->offset_speed;
+    
+    camera_->offset(dx * speed, dy * speed);
 }
 
 } // namespace yu

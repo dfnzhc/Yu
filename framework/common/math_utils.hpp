@@ -61,6 +61,13 @@ inline void CoordinateSystem(const vec3& v1, vec3& v2, vec3& v3)
     v3 = vec3{b, sign + std::sqrt(v1.y) * a, -v1.y};
 }
 
+inline void CameraFrameLH(const vec3& dir, vec3& right, vec3& up)
+{
+    const vec3 worldUp{0, 1, 0};
+    right = glm::normalize(glm::cross(glm::normalize(worldUp), dir));
+    up = glm::normalize(glm::cross(dir, right));
+}
+
 // Frame Definition
 struct Frame
 {
@@ -68,9 +75,9 @@ struct Frame
 
     Frame(vec3 x, vec3 y, vec3 z) : x{x}, y{y}, z{z} {}
 
-    static Frame FromXZ(vec3 x, vec3 z) { return {x, glm::cross(z, x), z}; }
+    static Frame FromXZ(vec3 x, vec3 z) { return {x, glm::normalize(glm::cross(z, x)), z}; }
 
-    static Frame FromXY(vec3 x, vec3 y) { return {x, y, glm::cross(x, y)}; }
+    static Frame FromXY(vec3 x, vec3 y) { return {x, y, glm::normalize(glm::cross(x, y))}; }
 
     static Frame FromZ(vec3 z)
     {
