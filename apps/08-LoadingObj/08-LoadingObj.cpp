@@ -126,8 +126,6 @@ public:
         pipeline_.destroy();
         pipeline_builder_.destroy();
 
-//        imGui_.destroy();
-
         // 释放描述符布局
         descriptor_pool_.freeDescriptor(descriptor_set_);
         vkDestroyDescriptorSetLayout(device_->getHandle(), descriptor_set_layout_, nullptr);
@@ -236,13 +234,11 @@ private:
     VulkanPipeline pipeline_;
     PipelineBuilder pipeline_builder_;
 
-//    ImGUI imGui_{};
-
     std::unique_ptr<yu::vk::ModelObj> model_ = nullptr;
 
     Texture texture_;
-    VkImageView texture_view_;
-    VkSampler texture_sampler_;
+    VkImageView texture_view_{};
+    VkSampler texture_sampler_{};
 
     VkDescriptorBufferInfo vertex_buffer_info_{};
     VkDescriptorBufferInfo index_buffer_info_{};
