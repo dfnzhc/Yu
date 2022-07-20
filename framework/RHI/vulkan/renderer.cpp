@@ -78,8 +78,6 @@ void Renderer::resize(uint32_t width, uint32_t height)
 
 void Renderer::render()
 {
-    // 交换链提交显示当前帧的命令，并转到下一帧
-    VK_CHECK(swap_chain_->present());
 }
 
 void Renderer::createUI(const VulkanInstance& instance, GLFWwindow* window)
