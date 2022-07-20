@@ -73,7 +73,7 @@ const std::vector<Vertex> vertices = {
     {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 };
 
-const std::vector<uint16_t> indices = {
+const std::vector<uint32_t> indices = {
     0, 1, 2, 2, 3, 0,
     4, 5, 6, 6, 7, 4
 };
@@ -246,7 +246,8 @@ public:
                               &index_buffer_info_,
                               &constantBufferInfo,
                               descriptor_set_);
-
+        imGui_->draw(cmdBuffer);
+        
         // 停止 render pass 的记录
         vkCmdEndRenderPass(cmdBuffer);
 
@@ -273,7 +274,8 @@ public:
             VK_CHECK(vkQueueSubmit(device_->getGraphicsQueue(), 1, &submit_info, CmdBufExecutedFences));
         }
 
-        Renderer::render();
+        // 交换链提交显示当前帧的命令，并转到下一帧
+        VK_CHECK(swap_chain_->present());
     }
 
 private:
@@ -298,7 +300,7 @@ public:
     {
         bSwapChain_CreateDepth = true;
     }
-    
+
     ~AppSample05() override = default;
 
     void update(float delta_time) override

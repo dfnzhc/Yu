@@ -198,7 +198,8 @@ public:
             swap_chain_->submit(device_->getGraphicsQueue(), cmdBuffer);
         }
 
-        Renderer::render();
+        // 交换链提交显示当前帧的命令，并转到下一帧
+        VK_CHECK(swap_chain_->present());
     }
 
     int loadAssets(int loadingStage) override

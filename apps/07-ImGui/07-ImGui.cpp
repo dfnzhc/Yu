@@ -83,7 +83,7 @@ const std::vector<Vertex> vertices = {
     {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 };
 
-const std::vector<uint16_t> indices = {
+const std::vector<uint32_t> indices = {
     0, 1, 2, 2, 3, 0,
     4, 5, 6, 6, 7, 4
 };
@@ -184,9 +184,6 @@ public:
 
         static_buffer_.uploadData(upload_heap_.getCommandBuffer());
 
-//        imGui_.create(device, constant_buffer_, swapChain->getRenderPass(), upload_heap_);
-
-
         upload_heap_.flushAndFinish();
     }
 
@@ -195,8 +192,6 @@ public:
         // 释放流水线
         pipeline_.destroy();
         pipeline_builder_.destroy();
-
-//        imGui_.destroy();
 
         // 释放描述符布局
         descriptor_pool_.freeDescriptor(descriptor_set_);
@@ -274,14 +269,13 @@ public:
             swap_chain_->submit(device_->getGraphicsQueue(), cmdBuffer);
         }
 
-        Renderer::render();
+        // 交换链提交显示当前帧的命令，并转到下一帧
+        VK_CHECK(swap_chain_->present());
     }
 
 private:
     VulkanPipeline pipeline_;
     PipelineBuilder pipeline_builder_;
-
-//    ImGUI imGui_{};
 
     Texture texture_;
     VkImageView texture_view_;
@@ -340,25 +334,12 @@ protected:
 
     void buildGUI()
     {
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
         ImGui::Begin("Debug");
         ImGui::Text("[FPS]: %d", static_cast<int>(uiStates.frameTimes.back()));
-
         ImGui::PlotLines("Frame Times", &uiStates.frameTimes[0], 50, 0, "", uiStates.frameTimeMin, uiStates.frameTimeMax, ImVec2(0, 80));
         ImGui::End();
 
         ImGui::ShowDemoWindow();
-
-        // Render to generate draw buffers
-        ImGui::Render();
-
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-        }
     }
 
 };

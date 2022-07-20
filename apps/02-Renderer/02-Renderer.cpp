@@ -87,7 +87,7 @@ public:
             renderPassInfo.renderArea.offset = {0, 0};
             renderPassInfo.renderArea.extent = {width_, height_};
 
-            VkClearValue clearColor = {{{0.2f, 0.3f, 0.7f, 1.0f}}};
+            VkClearValue clearColor = {{{0.1f, 0.2f, 0.23f, 1.0f}}};
             renderPassInfo.clearValueCount = 1;
             renderPassInfo.pClearValues = &clearColor;
 
@@ -104,10 +104,11 @@ public:
         mats[0] = mouse_tracker_->camera_->view_mat;
         mats[1] = mouse_tracker_->camera_->proj_mat;
 
-
         // 绘制设定的流水线
         pipeline_.draw(cmdBuffer, &constantBuffer, descriptor_set_);
-
+        
+        imGui_->draw(cmdBuffer);
+        
         // 停止 render pass 的记录
         vkCmdEndRenderPass(cmdBuffer);
 
@@ -134,7 +135,8 @@ public:
             VK_CHECK(vkQueueSubmit(device_->getGraphicsQueue(), 1, &submit_info, CmdBufExecutedFences));
         }
 
-        Renderer::render();
+        // 交换链提交显示当前帧的命令，并转到下一帧
+        VK_CHECK(swap_chain_->present());
     }
 
 private:

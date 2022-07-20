@@ -92,7 +92,7 @@ int main()
                     renderPassInfo.renderArea.offset = {0, 0};
                     renderPassInfo.renderArea.extent = {extent.width, extent.height};
 
-                    VkClearValue clearColor = {{{0.2f, 0.3f, 0.7f, 1.0f}}};
+                    VkClearValue clearColor = {{{0.1f, 0.2f, 0.23f, 1.0f}}};
                     renderPassInfo.clearValueCount = 1;
                     renderPassInfo.pClearValues = &clearColor;
 
