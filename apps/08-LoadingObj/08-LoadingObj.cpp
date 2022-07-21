@@ -264,7 +264,6 @@ public:
 
         static float updateUITime = 0.0;
         updateUITime += delta_time;
-
         if (updateUITime > .5f) {
             std::rotate(uiStates.frameTimes.begin(), uiStates.frameTimes.begin() + 1, uiStates.frameTimes.end());
             uiStates.frameTimes.back() = fps_;
