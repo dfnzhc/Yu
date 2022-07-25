@@ -15,14 +15,14 @@ struct Properties
     /**
      * @brief 查询系统可用的扩展与中间层
      */
-    std::vector<VkLayerProperties> layer_properties;
-    std::vector<VkExtensionProperties> extension_properties;
+    std::vector<VkLayerProperties> layer_properties{};
+    std::vector<VkExtensionProperties> extension_properties{};
 
     /**
      * @brief 通过设置启用的扩展与中间层
      */
-    std::vector<const char*> enabled_layers;
-    std::vector<const char*> enabled_extensions;
+    std::vector<const char*> enabled_layers{};
+    std::vector<const char*> enabled_extensions{};
     void* pNext = nullptr;
 
     bool addLayer(std::string_view layerName);
