@@ -7,20 +7,6 @@
 
 namespace yu::vk {
 
-PFN_vkGetDeviceProcAddr g_vkGetDeviceProcAddr;
-
-// Functions for regular HDR ex: HDR10
-PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR g_vkGetPhysicalDeviceSurfaceCapabilities2KHR;
-PFN_vkGetPhysicalDeviceSurfaceFormats2KHR g_vkGetPhysicalDeviceSurfaceFormats2KHR;
-PFN_vkSetHdrMetadataEXT g_vkSetHdrMetadataEXT;
-
-static VkPhysicalDeviceSurfaceInfo2KHR s_PhysicalDeviceSurfaceInfo2KHR;
-
-static VkSurfaceFullScreenExclusiveWin32InfoEXT s_SurfaceFullScreenExclusiveWin32InfoEXT;
-static VkSurfaceFullScreenExclusiveInfoEXT s_SurfaceFullScreenExclusiveInfoEXT;
-
-static VkDisplayNativeHdrSurfaceCapabilitiesAMD s_DisplayNativeHdrSurfaceCapabilitiesAMD;
-
 static bool CanUseHdrInstanceEXT = false;
 static bool CanUseHdrDeviceEXT = false;
 

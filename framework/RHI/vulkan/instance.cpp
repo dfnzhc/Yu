@@ -3,6 +3,7 @@
 //
 
 #include <logger.hpp>
+
 #include "instance.hpp"
 #include "initializers.hpp"
 #include "error.hpp"
@@ -40,7 +41,7 @@ VulkanInstance::VulkanInstance(std::string_view appName, InstanceProperties inst
     instCI.ppEnabledExtensionNames = properties_.enabled_extensions.data();
 
     VK_CHECK(vkCreateInstance(&instCI, nullptr, &instance_));
-
+    
     // create debug messenger
     SetupDebugMessenger(instance_);
 }

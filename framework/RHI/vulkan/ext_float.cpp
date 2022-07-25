@@ -20,6 +20,7 @@ void CheckFP16DeviceEXT(DeviceProperties& dp)
         VkPhysicalDeviceFeatures2 features = {};
         features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
         features.pNext = &Storage16BitFeatures;
+        
         vkGetPhysicalDeviceFeatures2(dp.physical_device, &features);
 
         // Query 16 bit ops
