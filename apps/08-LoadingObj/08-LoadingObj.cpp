@@ -155,6 +155,8 @@ public:
             cmd_buf_info.pInheritanceInfo = nullptr;
             VK_CHECK(vkBeginCommandBuffer(cmdBuffer, &cmd_buf_info));
         }
+        
+        gpu_timer_.beginFrame(cmdBuffer, time_stamps_);
 
         // render pass 一些默认设置
         {
@@ -185,9 +187,11 @@ public:
 
         if (model_ != nullptr) {
             model_->draw(pipeline_, cmdBuffer, &constantBufferInfo, descriptor_set_);
+            gpu_timer_.getTimeStamp(cmdBuffer, "Draw Model");
         }
 
         imGui_->draw(cmdBuffer);
+        gpu_timer_.getTimeStamp(cmdBuffer, "ImGui Rendering");
 
         // 停止 render pass 的记录
         vkCmdEndRenderPass(cmdBuffer);
@@ -197,6 +201,9 @@ public:
             VK_CHECK(vkEndCommandBuffer(cmdBuffer));
             swap_chain_->submit(device_->getGraphicsQueue(), cmdBuffer);
         }
+        
+        // 切换至下一帧的记录
+        gpu_timer_.endFrame();
 
         // 交换链提交显示当前帧的命令，并转到下一帧
         VK_CHECK(swap_chain_->present());
@@ -287,12 +294,13 @@ protected:
 
     void render() override
     {
-        buildGUI();
         renderer_->render();
     }
 
-    void buildGUI()
+    void buildUI() override
     {
+        AppBase::buildUI();
+        
         ImGui::Begin("Debug");
         ImGui::Text("[FPS]: %d", static_cast<int>(uiStates.frameTimes.back()));
 
