@@ -83,8 +83,8 @@ set(VULKAN_FILES
         RHI/vulkan/imgui.cpp
         RHI/vulkan/imgui_impl_vulkan.cpp
         RHI/vulkan/buffer.cpp
-        RHI/vulkan/model_obj.cpp 
-        )
+        RHI/vulkan/model_obj.cpp
+        RHI/vulkan/gpu_time.cpp RHI/vulkan/gpu_time.hpp)
 
 # set the group of the source files
 source_group("common\\" FILES ${COMMON_FILES})
