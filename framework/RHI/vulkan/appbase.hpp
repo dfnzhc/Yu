@@ -29,6 +29,8 @@ protected:
     
     virtual void initRenderer() {}
     virtual void render() {}
+    
+    virtual void buildUI();
 
     virtual InstanceProperties setInstanceProps();
     

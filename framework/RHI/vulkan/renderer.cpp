@@ -36,6 +36,9 @@ void Renderer::create(const VulkanDevice& device, SwapChain* swapChain, const Mo
     // 创建上传堆，用于向 GPU 上传资源，例如图片
     const uint32_t uploadHeapMemSize = 1000 * 1024 * 1024;
     upload_heap_.create(device, uploadHeapMemSize);
+    
+    // 创建 GPU timer
+    gpu_timer_.create(device, swapChain->getFrameCount());
 }
 
 void Renderer::destroy()
@@ -46,6 +49,7 @@ void Renderer::destroy()
     descriptor_pool_.destroy();
     static_buffer_.destroy();
     upload_heap_.destory();
+    gpu_timer_.destroy();
     
     imGui_->destroy();
 }

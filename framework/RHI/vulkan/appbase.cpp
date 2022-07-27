@@ -61,6 +61,8 @@ void AppBase::update(float delta_time)
         if (loadingStage == 0) {
             loadingAssets = false;
         }
+    } else {
+        buildUI();
     }
 }
 
@@ -169,6 +171,71 @@ void AppBase::initVulkan()
     // 3. 创建交换链
     swap_chain_ = std::make_unique<SwapChain>(*device_, bSwapChain_CreateDepth);
     swap_chain_->createWindowSizeDependency(instance_->getSurface());
+}
+
+void AppBase::buildUI()
+{
+    // 渲染性能的 profiler
+    auto [W, H] = platform_->getWindow()->getExtent();
+
+    {
+        const uint32_t PROFILER_WINDOW_PADDIG_X = 10;
+        const uint32_t PROFILER_WINDOW_PADDIG_Y = 10;
+        const uint32_t PROFILER_WINDOW_SIZE_X = 400;
+        const uint32_t PROFILER_WINDOW_SIZE_Y = 450;
+        const uint32_t PROFILER_WINDOW_POS_X = W - PROFILER_WINDOW_PADDIG_X - PROFILER_WINDOW_SIZE_X;
+        const uint32_t PROFILER_WINDOW_POS_Y = PROFILER_WINDOW_PADDIG_Y;
+
+        // track highest frame rate and determine the max value of the graph based on the measured highest value
+        static float RecentHighestFrameTime = 0.0f;
+        static float RecentLowestFrameTime = 99999.0f;
+        constexpr int RecordCount = 128;
+        static std::vector<float> FrameTimeRecords(RecordCount, 0.0);
+
+        //scrolling data and average FPS computing
+        const auto& timeStamps = renderer_->getTimings();
+        const bool bTimeStampsAvailable = !timeStamps.empty();
+        if (bTimeStampsAvailable) {
+            std::rotate(FrameTimeRecords.begin(), FrameTimeRecords.begin() + 1, FrameTimeRecords.end());
+            float ms = timeStamps.back().microseconds;
+            FrameTimeRecords.back() = ms;
+
+            if (ms < RecentLowestFrameTime) RecentLowestFrameTime = ms;
+            if (ms > RecentHighestFrameTime) RecentHighestFrameTime = ms;
+        }
+        const float frameTime_ms = FrameTimeRecords.back();
+        const int fps = bTimeStampsAvailable ? static_cast<int>(1e6f / frameTime_ms) : 0;
+
+        // UI
+        ImGui::SetNextWindowPos(ImVec2((float) PROFILER_WINDOW_POS_X, (float) PROFILER_WINDOW_POS_Y), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(PROFILER_WINDOW_SIZE_X, PROFILER_WINDOW_SIZE_Y), ImGuiCond_FirstUseEver);
+        ImGui::Begin("PROFILER");
+
+        ImGui::Text("Resolution : %ix%i", W, H);
+        ImGui::Text("API        : %s", system_info_.APIVersion.c_str());
+        ImGui::Text("GPU        : %s", system_info_.GPUName.c_str());
+        ImGui::Text("CPU        : %s", system_info_.CPUName.c_str());
+        ImGui::Text("FPS        : %d (%.2f ms)", fps, frameTime_ms);
+
+        if (ImGui::CollapsingHeader("GPU Timings", ImGuiTreeNodeFlags_DefaultOpen)) {
+            // WARNING: If validation layer is switched on, the performance numbers may be inaccurate!
+            
+            ImGui::PlotLines("",
+                             FrameTimeRecords.data(),
+                             RecordCount,
+                             0,
+                             "GPU frame time (ms)",
+                             RecentLowestFrameTime,
+                             RecentHighestFrameTime,
+                             ImVec2(0, 80));
+
+            for (const auto& timeStamp : timeStamps) {
+                float value = timeStamp.microseconds / 1000.0f;
+                ImGui::Text("%-18s: %7.2f ms", timeStamp.label.c_str(), value);
+            }
+        }
+        ImGui::End(); // PROFILER
+    }
 }
 
 InstanceProperties AppBase::setInstanceProps()

@@ -13,9 +13,9 @@
 #include "async.hpp"
 #include "upload_heap.hpp"
 #include "imgui.hpp"
+#include "gpu_time.hpp"
 
 #include <common/mouse_tracker.hpp>
-
 
 namespace yu::vk {
 
@@ -38,6 +38,8 @@ public:
     
     void createUI(const VulkanInstance& instance, GLFWwindow* window);
     
+    const std::vector<TimeStamp>& getTimings() const { return time_stamps_; }
+    
 protected:
     const VulkanDevice* device_ = nullptr;
     SwapChain* swap_chain_ = nullptr;
@@ -54,6 +56,9 @@ protected:
 
     uint32_t width_{};
     uint32_t height_{};
+    
+    GPUTimeStamp gpu_timer_{}; 
+    std::vector<TimeStamp> time_stamps_;
     
     std::unique_ptr<ImGUI> imGui_ = nullptr;
     San::AsyncPool async_pool_;
