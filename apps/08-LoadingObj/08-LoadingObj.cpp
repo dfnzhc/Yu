@@ -297,17 +297,6 @@ protected:
         renderer_->render();
     }
 
-    void buildUI() override
-    {
-        AppBase::buildUI();
-        
-        ImGui::Begin("Debug");
-        ImGui::Text("[FPS]: %d", static_cast<int>(uiStates.frameTimes.back()));
-
-        ImGui::PlotLines("Frame Times", &uiStates.frameTimes[0], 50, 0, "", uiStates.frameTimeMin, uiStates.frameTimeMax, ImVec2(0, 80));
-        ImGui::End();
-    }
-
 };
 
 int main()
